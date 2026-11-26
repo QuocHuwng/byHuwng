@@ -520,25 +520,194 @@
   100% { transform: translateY(0) scale(1); }
 }
 
+/* ========================================================
+   CỘT CON ROBOT & THANH NHẬP XÚC XẮC THU GỌN
+   ======================================================== */
+.tx-robot-column {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Thanh dock nhập xúc xắc nhanh (Vẫn còn khi thu gọn con robot) */
+.tx-robot-dock {
+  width: 108px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1.5px solid #d4af37;
+  border-radius: 10px;
+  padding: 5px 6px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.65), 0 0 10px rgba(212, 175, 55, 0.25);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 5;
+  transition: all 0.2s ease;
+}
+
+.tx-robot-dock:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 14px rgba(212, 175, 55, 0.4);
+}
+
+.tx-dock-quick-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 3px;
+}
+
+.tx-dock-btn {
+  padding: 3px 2px;
+  font-size: 9.5px;
+  font-weight: 800;
+  border-radius: 4px;
+  border: 1px solid;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.tx-dock-tai {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+.tx-dock-tai:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.tx-dock-xiu {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: #10b981;
+  color: #86efac;
+}
+.tx-dock-xiu:hover {
+  background: #10b981;
+  color: #fff;
+}
+
+.tx-dock-toggle {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  padding: 3px 5px;
+}
+.tx-dock-toggle:hover {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.tx-dock-input-row {
+  display: flex;
+  gap: 3px;
+}
+
+.tx-dock-input-row input {
+  flex: 1;
+  width: 58px;
+  background: #0b0f19;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 4px;
+  border-radius: 4px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.tx-dock-input-row input:focus {
+  border-color: #d4af37;
+  background: #131b2e;
+}
+
+.tx-dock-sub {
+  background: #d4af37;
+  color: #020617;
+  font-size: 10px;
+  font-weight: 900;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.tx-dock-sub:hover {
+  background: #f59e0b;
+}
+
 /* Mini Quick Tag bên cạnh khi thu nhỏ */
 .tx-robot-quick-tag {
   position: absolute;
-  top: 15px;
-  right: -90px;
-  background: #0f172a;
-  border: 1.5px solid #d4af37;
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 900;
+  top: 8px;
+  left: 116px;
+  background: rgba(15, 23, 42, 0.98);
+  border: 2px solid #d4af37;
+  padding: 6px 12px;
+  border-radius: 10px;
   color: #fff;
   white-space: nowrap;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.6);
-  z-index: 10;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.35);
+  z-index: 2147483647;
+  pointer-events: none;
 }
-.tx-robot-quick-tag.tag-tai { border-color: #ef4444; color: #f87171; }
-.tx-robot-quick-tag.tag-xiu { border-color: #10b981; color: #34d399; }
-.tx-robot-quick-tag.tag-triple { border-color: #a855f7; color: #c084fc; }
+
+.tx-robot-quick-tag::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: -8px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 8px solid #d4af37;
+}
+
+.tx-robot-quick-tag.tag-tai {
+  border-color: #ef4444;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(239, 68, 68, 0.5);
+}
+.tx-robot-quick-tag.tag-tai::before {
+  border-right-color: #ef4444;
+}
+
+.tx-robot-quick-tag.tag-xiu {
+  border-color: #10b981;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(16, 185, 129, 0.5);
+}
+.tx-robot-quick-tag.tag-xiu::before {
+  border-right-color: #10b981;
+}
+
+.tx-robot-quick-tag.tag-triple {
+  border-color: #a855f7;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(168, 85, 247, 0.5);
+}
+.tx-robot-quick-tag.tag-triple::before {
+  border-right-color: #a855f7;
+}
+
+.tx-tag-res {
+  font-size: 13.5px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+.tag-tai .tx-tag-res { color: #f87171; text-shadow: 0 0 10px rgba(239, 68, 68, 0.6); }
+.tag-xiu .tx-tag-res { color: #34d399; text-shadow: 0 0 10px rgba(16, 185, 129, 0.6); }
+.tag-triple .tx-tag-res { color: #c084fc; text-shadow: 0 0 10px rgba(168, 85, 247, 0.6); }
+
+.tx-tag-next {
+  font-size: 10px;
+  font-weight: 700;
+  color: #38bdf8;
+}
 
 .animate-pop {
   animation: tagPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);

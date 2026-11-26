@@ -415,50 +415,69 @@
     container.id = 'taixiu-pro-hud';
     container.className = 'tx-robot-container';
     container.innerHTML = `
-      <!-- 1. CON ROBOT HOẠT HÌNH (ROBOT AVATAR) -->
-      <div class="tx-robot-avatar-wrap" id="txRobotAvatar" title="Nhấp để ẩn/hiện bảng kết quả bên cạnh | Giữ chuột để kéo di chuyển">
-        <!-- Robot Character Graphics -->
-        <div class="tx-robot-body">
-          <!-- Ăng-ten phát sóng -->
-          <div class="tx-robot-antenna">
-            <div class="tx-antenna-ball" id="txAntennaBall"></div>
-            <div class="tx-antenna-stem"></div>
-          </div>
+      <!-- 1. CỘT CON ROBOT & THANH NHẬP XÚC XẮC LUÔN SẴN SÀNG (KỂ CẢ KHI THU GỌN) -->
+      <div class="tx-robot-column" id="txRobotColumn">
+        <!-- Robot Avatar Character -->
+        <div class="tx-robot-avatar-wrap" id="txRobotAvatar" title="Nhấp để ẩn/hiện bảng kết quả bên cạnh | Giữ chuột để kéo di chuyển">
+          <!-- Robot Character Graphics -->
+          <div class="tx-robot-body">
+            <!-- Ăng-ten phát sóng -->
+            <div class="tx-robot-antenna">
+              <div class="tx-antenna-ball" id="txAntennaBall"></div>
+              <div class="tx-antenna-stem"></div>
+            </div>
 
-          <!-- Đầu Robot -->
-          <div class="tx-robot-head">
-            <!-- Tai cảm biến trái phải -->
-            <div class="tx-robot-ear ear-left"></div>
-            <div class="tx-robot-ear ear-right"></div>
+            <!-- Đầu Robot -->
+            <div class="tx-robot-head">
+              <!-- Tai cảm biến trái phải -->
+              <div class="tx-robot-ear ear-left"></div>
+              <div class="tx-robot-ear ear-right"></div>
 
-            <!-- Kính mắt / Màn hình hiển thị biểu cảm -->
-            <div class="tx-robot-face" id="txRobotFace">
-              <div class="tx-robot-eye eye-left" id="txEyeLeft"></div>
-              <div class="tx-robot-eye eye-right" id="txEyeRight"></div>
-              <div class="tx-robot-mouth" id="txRobotMouth"></div>
+              <!-- Kính mắt / Màn hình hiển thị biểu cảm -->
+              <div class="tx-robot-face" id="txRobotFace">
+                <div class="tx-robot-eye eye-left" id="txEyeLeft"></div>
+                <div class="tx-robot-eye eye-right" id="txEyeRight"></div>
+                <div class="tx-robot-mouth" id="txRobotMouth"></div>
+              </div>
+            </div>
+
+            <!-- Thân Robot và Động cơ đẩy năng lượng -->
+            <div class="tx-robot-torso">
+              <div class="tx-robot-chest-plate">
+                <div class="tx-robot-logo-text">byHuwng</div>
+                <div class="tx-robot-reactor" id="txRobotReactor"></div>
+              </div>
+              <!-- Vòng năng lượng bay lơ lửng -->
+              <div class="tx-robot-thruster"></div>
             </div>
           </div>
 
-          <!-- Thân Robot và Động cơ đẩy năng lượng -->
-          <div class="tx-robot-torso">
-            <div class="tx-robot-chest-plate">
-              <div class="tx-robot-logo-text">byHuwng</div>
-              <div class="tx-robot-reactor" id="txRobotReactor"></div>
-            </div>
-            <!-- Vòng năng lượng bay lơ lửng -->
-            <div class="tx-robot-thruster"></div>
+          <!-- Trạng thái LED báo hiệu -->
+          <div class="tx-robot-status-pill" id="txRobotStatusPill">
+            <span class="tx-pill-dot"></span>
+            <span class="tx-pill-text" id="txRobotPillText">AI Bot</span>
           </div>
         </div>
 
-        <!-- Trạng thái LED báo hiệu -->
-        <div class="tx-robot-status-pill" id="txRobotStatusPill">
-          <span class="tx-pill-dot"></span>
-          <span class="tx-pill-text" id="txRobotPillText">AI Bot</span>
+        <!-- PHẦN NHẬP XÚC XẮC CỦA ROBOT (VẪN CÒN KHI THU GỌN) -->
+        <div class="tx-robot-dock" id="txRobotDock">
+          <div class="tx-dock-quick-row">
+            <button id="txDockTaiBtn" class="tx-dock-btn tx-dock-tai" title="Báo nhanh Tài 13 (6-2-5)">⚡Tài</button>
+            <button id="txDockXiuBtn" class="tx-dock-btn tx-dock-xiu" title="Báo nhanh Xỉu 8 (2-3-3)">⚡Xỉu</button>
+            <button id="txDockToggleBtn" class="tx-dock-btn tx-dock-toggle" title="Mở rộng / Thu nhỏ bảng bên cạnh">📊</button>
+          </div>
+          <div class="tx-dock-input-row">
+            <input type="text" id="txDockDiceInput" placeholder="vd: 625" maxlength="16" title="Gõ 3 số xúc xắc (vd: 625) & Enter">
+            <button id="txDockSubmitBtn" class="tx-dock-sub" title="Báo kết quả">Báo</button>
+          </div>
         </div>
 
-        <!-- Mini tag nhanh khi thu nhỏ -->
+        <!-- Bong bóng báo kết quả bên cạnh con robot khi thu gọn -->
         <div class="tx-robot-quick-tag" id="txRobotQuickTag" style="display: none;">
-          <span id="txQuickTagText">TÀI 13</span>
+          <div class="tx-quick-tag-bubble">
+            <div class="tx-tag-res" id="txQuickTagRes">TÀI 13 [6-2-5]</div>
+            <div class="tx-tag-next" id="txQuickTagNext">Kế tiếp: #3340097</div>
+          </div>
         </div>
       </div>
 
@@ -625,6 +644,7 @@
     const container = document.getElementById('taixiu-pro-hud');
     const panel = document.getElementById('txRobotSidePanel');
     const collapseBtn = document.getElementById('txPanelCollapseBtn');
+    const dockToggleBtn = document.getElementById('txDockToggleBtn');
     if (!panel) return;
 
     watcherState.settings.bubbleVisible = !watcherState.settings.bubbleVisible;
@@ -633,10 +653,12 @@
       panel.style.display = 'block';
       container.classList.remove('panel-collapsed');
       if (collapseBtn) collapseBtn.textContent = '◀';
+      if (dockToggleBtn) dockToggleBtn.textContent = '◀';
     } else {
       panel.style.display = 'none';
       container.classList.add('panel-collapsed');
       if (collapseBtn) collapseBtn.textContent = '▶';
+      if (dockToggleBtn) dockToggleBtn.textContent = '📊';
     }
   }
 
@@ -645,11 +667,19 @@
   // ==========================================
   function setupRobotListeners(container) {
     const collapseBtn = container.querySelector('#txPanelCollapseBtn');
+    const dockToggleBtn = container.querySelector('#txDockToggleBtn');
     const bannerBtn = container.querySelector('#txPanelBannerBtn');
     const notifyBtn = container.querySelector('#txPanelNotifyBtn');
 
     if (collapseBtn) {
       collapseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSidePanel();
+      });
+    }
+
+    if (dockToggleBtn) {
+      dockToggleBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         toggleSidePanel();
       });
@@ -672,29 +702,49 @@
       });
     }
 
-    // Quick Add Buttons
+    // Quick Add Buttons (Trên bảng side-panel)
     const quickTai = container.querySelector('#txQuickTai');
-    quickTai.addEventListener('click', () => {
-      handleFinishedSession(null, 6, 2, 5); // Tài 13 (6-2-5)
-    });
+    if (quickTai) {
+      quickTai.addEventListener('click', () => {
+        handleFinishedSession(null, 6, 2, 5); // Tài 13 (6-2-5)
+      });
+    }
 
     const quickXiu = container.querySelector('#txQuickXiu');
-    quickXiu.addEventListener('click', () => {
-      handleFinishedSession(null, 2, 3, 3); // Xỉu 8 (2-3-3)
-    });
+    if (quickXiu) {
+      quickXiu.addEventListener('click', () => {
+        handleFinishedSession(null, 2, 3, 3); // Xỉu 8 (2-3-3)
+      });
+    }
 
     const quickTriple = container.querySelector('#txQuickTriple');
-    quickTriple.addEventListener('click', () => {
-      const v = (Math.random() * 6 | 0) + 1;
-      handleFinishedSession(null, v, v, v);
-    });
+    if (quickTriple) {
+      quickTriple.addEventListener('click', () => {
+        const v = (Math.random() * 6 | 0) + 1;
+        handleFinishedSession(null, v, v, v);
+      });
+    }
 
-    // Manual Input: gõ 625 hoặc #3340096 625
-    const input = container.querySelector('#txManualDiceInput');
-    const submit = container.querySelector('#txManualSubmitBtn');
+    // Quick Add Buttons (Ngay trên thanh thu gọn dưới Robot)
+    const dockTai = container.querySelector('#txDockTaiBtn');
+    if (dockTai) {
+      dockTai.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleFinishedSession(null, 6, 2, 5); // Tài 13 (6-2-5)
+      });
+    }
 
-    const submitManual = () => {
-      const raw = input.value.trim();
+    const dockXiu = container.querySelector('#txDockXiuBtn');
+    if (dockXiu) {
+      dockXiu.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleFinishedSession(null, 2, 3, 3); // Xỉu 8 (2-3-3)
+      });
+    }
+
+    // Xử lý chung hàm submit xúc xắc từ chuỗi text
+    const executeDiceSubmit = (rawStr) => {
+      const raw = (rawStr || '').trim();
       let customSessionId = null;
       let diceStr = raw;
 
@@ -711,16 +761,43 @@
         const d2 = parseInt(diceStr[1], 10);
         const d3 = parseInt(diceStr[2], 10);
         handleFinishedSession(customSessionId, d1, d2, d3);
-        input.value = '';
-        return;
+
+        // Xóa trắng cả 2 ô nhập
+        const input1 = document.getElementById('txManualDiceInput');
+        const input2 = document.getElementById('txDockDiceInput');
+        if (input1) input1.value = '';
+        if (input2) input2.value = '';
+        return true;
       }
       alert('Vui lòng gõ 3 số xúc xắc từ 1 đến 6 (ví dụ: 625 hoặc #3340096 625)');
+      return false;
     };
 
-    submit.addEventListener('click', submitManual);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') submitManual();
-    });
+    // Manual Input 1: Trên bảng side-panel
+    const input = container.querySelector('#txManualDiceInput');
+    const submit = container.querySelector('#txManualSubmitBtn');
+    if (submit && input) {
+      submit.addEventListener('click', () => executeDiceSubmit(input.value));
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') executeDiceSubmit(input.value);
+      });
+    }
+
+    // Manual Input 2: Ngay trên thanh dock con robot (VẪN CÒN KHI THU GỌN)
+    const dockInput = container.querySelector('#txDockDiceInput');
+    const dockSubmit = container.querySelector('#txDockSubmitBtn');
+    if (dockSubmit && dockInput) {
+      dockSubmit.addEventListener('click', (e) => {
+        e.stopPropagation();
+        executeDiceSubmit(dockInput.value);
+      });
+      dockInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.stopPropagation();
+          executeDiceSubmit(dockInput.value);
+        }
+      });
+    }
   }
 
   // ==========================================
@@ -736,7 +813,8 @@
     const antenna = document.getElementById('txAntennaBall');
     const pillText = document.getElementById('txRobotPillText');
     const quickTag = document.getElementById('txRobotQuickTag');
-    const quickTagText = document.getElementById('txQuickTagText');
+    const quickTagRes = document.getElementById('txQuickTagRes');
+    const quickTagNext = document.getElementById('txQuickTagNext');
 
     const sIdEl = document.getElementById('txHudSessionId');
     const badgeEl = document.getElementById('txHudBadgeRes');
@@ -783,15 +861,20 @@
     }
 
     // Nếu bảng bên cạnh đang bị thu gọn, hiển thị Quick Tag bên cạnh robot trong 6 giây
-    if (quickTag && quickTagText) {
-      quickTagText.textContent = `${label} ${session.sum} [${session.dice.join('-')}]`;
+    if (quickTag) {
+      if (quickTagRes) {
+        quickTagRes.textContent = `${label} ${session.sum}đ [${session.dice.join('-')}]`;
+      }
+      if (quickTagNext && forecast) {
+        quickTagNext.textContent = `Phiên sau ${forecast.nextSessionId} • ${forecast.trendBadge}`;
+      }
       if (!watcherState.settings.bubbleVisible) {
         quickTag.style.display = 'block';
         quickTag.className = `tx-robot-quick-tag tag-${session.result} animate-pop`;
         if (watcherState.bubbleTimeout) clearTimeout(watcherState.bubbleTimeout);
         watcherState.bubbleTimeout = setTimeout(() => {
           quickTag.style.display = 'none';
-        }, 6000);
+        }, 6500);
       }
     }
 
