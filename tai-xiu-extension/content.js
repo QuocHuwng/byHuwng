@@ -199,10 +199,6 @@
     const probTheoXiu = `${probXiuNum.toFixed(1)}%`.replace('.', ',');
     const probTheoTriple = '2,78%';
 
-    const recent20 = history.slice(-20);
-    const countTai = recent20.filter(s => s.result === 'tai').length;
-    const countXiu = recent20.filter(s => s.result === 'xiu').length;
-
     return {
       nextSessionId,
       probTheoTai,
