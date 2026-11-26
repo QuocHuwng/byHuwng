@@ -114,7 +114,11 @@
   /**
    * Tính toán xác suất và phân tích thế cầu cho PHIÊN TIẾP THEO
    */
+  /**
+   * Xem lại toàn bộ các kết quả trước đó rồi mới đưa ra quyết định tối ưu
+   */
   function calcNextSessionForecast(finishedSession, history) {
+    // 1. Mã phiên tiếp theo
     let nextSessionId = '#???';
     if (finishedSession.sessionId) {
       const numMatch = finishedSession.sessionId.match(/[0-9]+/);
@@ -128,79 +132,158 @@
       nextSessionId = `#${watcherState.currentSessionNumber}`;
     }
 
-    const pattern = detectPatternName(history);
-    let trendAdvice = 'Biến cố độc lập: Xác suất 2 cửa cân bằng';
-    let trendBadge = 'Cầu Tự Nhiên';
+    // 2. LẤY CHUỖI LỊCH SỬ ĐỂ SOI LẠI (REVIEW PREVIOUS SESSIONS)
+    const validHistory = (history && history.length > 0) ? history : [finishedSession];
+    const n = validHistory.length;
+    const results = validHistory.map(s => s.result);
+    const sums = validHistory.map(s => s.sum || 10);
+    const lastResult = results[n - 1];
 
-    // TÍNH TOÁN TỶ LỆ DỰ ĐOÁN ĐỘNG THEO THẾ CẦU & LỊCH SỬ (Dynamic Predictive Probability)
-    let probTaiNum = 50.0;
-    let probXiuNum = 50.0;
+    // Lấy chuỗi 5 ván gần nhất để hiển thị trực quan cho người chơi
+    const recent5 = validHistory.slice(-5);
+    const recent5Symbols = recent5.map(s => s.result === 'tai' ? 'Tài' : (s.result === 'xiu' ? 'Xỉu' : 'Bộ 3')).join(' ➔ ');
 
-    const recent20 = history.slice(-20);
-    const countTai = recent20.filter(s => s.result === 'tai').length;
-    const countXiu = recent20.filter(s => s.result === 'xiu').length;
-    const totalRecent = countTai + countXiu || 1;
+    // 3. ĐÁNH GIÁ YẾU TỐ 1: THẾ CẦU & CHUỖI NHỊP (Streak & Pattern)
+    const pattern = detectPatternName(validHistory);
+    let patternScore = 0; // > 0 nghiêng về Tài, < 0 nghiêng về Xỉu
 
-    if (pattern.includes('Cầu Bệt')) {
-      const isBetTai = pattern.includes('Tài');
-      trendBadge = isBetTai ? 'Theo Bệt Tài' : 'Theo Bệt Xỉu';
-      trendAdvice = `Đang bệt dài. Quán tính chuỗi bệt đang rất mạnh, ưu tiên bám theo ${isBetTai ? 'TÀI' : 'XỈU'}.`;
-      const matchNum = pattern.match(/\d+/);
-      const streakLen = matchNum ? parseInt(matchNum[0], 10) : 3;
-      const boost = Math.min(24, 10 + (streakLen - 2) * 3);
-      if (isBetTai) {
-        probTaiNum = 50 + boost;
-        probXiuNum = 100 - probTaiNum;
-      } else {
-        probXiuNum = 50 + boost;
-        probTaiNum = 100 - probXiuNum;
-      }
-    } else if (pattern.includes('Cầu Đảo')) {
-      const nextSuggest = finishedSession.result === 'tai' ? 'XỈU' : 'TÀI';
-      trendBadge = `Theo Đảo ➔ ${nextSuggest}`;
-      trendAdvice = `Đang có nhịp xen kẽ Tài - Xỉu. Nhịp đảo gợi ý cửa ${nextSuggest}.`;
-      if (nextSuggest === 'TÀI') {
-        probTaiNum = 64.2;
-        probXiuNum = 35.8;
-      } else {
-        probXiuNum = 64.2;
-        probTaiNum = 35.8;
-      }
-    } else if (pattern.includes('2-2')) {
-      const nextSuggest = finishedSession.result === 'tai' ? 'XỈU' : 'TÀI';
-      trendBadge = `Cầu Đôi ➔ ${nextSuggest}`;
-      trendAdvice = `Đã hoàn thành cặp đối xứng. Nhịp 2-2 thường đổi nhịp sang ${nextSuggest}.`;
-      if (nextSuggest === 'XỈU') {
-        probXiuNum = 59.5;
-        probTaiNum = 40.5;
-      } else {
-        probTaiNum = 59.5;
-        probXiuNum = 40.5;
-      }
-    } else {
-      // Cầu tự nhiên: Tính độ lệch phân bổ 20 phiên gần nhất (Mean Reversion)
-      if (recent20.length >= 4) {
-        const diff = countTai - countXiu;
-        probXiuNum = +(50 + diff * 1.8).toFixed(1);
-        probXiuNum = Math.max(38, Math.min(62, probXiuNum));
-        probTaiNum = +(100 - probXiuNum).toFixed(1);
-
-        if (diff > 2) {
-          trendAdvice = `Tài đang áp đảo (${countTai}/${totalRecent}). Xu hướng kéo về cân bằng nghiêng về XỈU.`;
-        } else if (diff < -2) {
-          trendAdvice = `Xỉu đang áp đảo (${countXiu}/${totalRecent}). Xu hướng kéo về cân bằng nghiêng về TÀI.`;
-        } else {
-          trendAdvice = 'Xác suất 2 bên cân bằng. Nên đi đều tiền hoặc quan sát.';
-        }
+    // 4. ĐÁNH GIÁ YẾU TỐ 2: QUỸ ĐẠO ĐIỂM SỐ XÚC XẮC (Dice Momentum)
+    let momentumScore = 0;
+    let momentumNote = '';
+    if (sums.length >= 3) {
+      const s1 = sums[sums.length - 3];
+      const s2 = sums[sums.length - 2];
+      const s3 = sums[sums.length - 1];
+      if (s1 < s2 && s2 < s3) {
+        // Điểm đang leo dốc liên tục (ví dụ: 7 -> 10 -> 13)
+        momentumScore = +15;
+        momentumNote = `Điểm tăng (${s1}➔${s2}➔${s3}), đà Tài mạnh`;
+      } else if (s1 > s2 && s2 > s3) {
+        // Điểm đang tụt dốc liên tục (ví dụ: 15 -> 12 -> 8)
+        momentumScore = -15;
+        momentumNote = `Điểm giảm (${s1}➔${s2}➔${s3}), đà Xỉu mạnh`;
+      } else if (s3 >= 15) {
+        // Chạm trần điểm cao (15, 16, 17) -> Lực hồi quy kéo về Xỉu rất mạnh
+        momentumScore = -20;
+        momentumNote = `Điểm chạm trần cao (${s3}đ), lực hồi quy kéo về Xỉu mạnh`;
+      } else if (s3 <= 6) {
+        // Chạm sàn điểm thấp (4, 5, 6) -> Lực nảy kéo lên Tài rất mạnh
+        momentumScore = +20;
+        momentumNote = `Điểm chạm sàn thấp (${s3}đ), lực nảy kéo lên Tài mạnh`;
       }
     }
 
-    const probTheoTai = `${probTaiNum.toFixed(1)}%`.replace('.', ',');
-    const probTheoXiu = `${probXiuNum.toFixed(1)}%`.replace('.', ',');
+    // 5. ĐÁNH GIÁ YẾU TỐ 3: MA TRẬN CHUYỂN DỊCH BÀN CHƠI (Markov Transition)
+    // Sau khi ra kết quả giống ván vừa rồi, lịch sử bàn này thường ra con gì tiếp?
+    let markovTaiCount = 0;
+    let markovXiuCount = 0;
+    for (let i = 0; i < n - 1; i++) {
+      if (results[i] === lastResult) {
+        const next = results[i + 1];
+        if (next === 'tai') markovTaiCount++;
+        else if (next === 'xiu') markovXiuCount++;
+      }
+    }
+    const markovTotal = markovTaiCount + markovXiuCount;
+    let markovScore = 0;
+    let markovNote = '';
+    if (markovTotal >= 3) {
+      const markovTaiRate = markovTaiCount / markovTotal;
+      markovScore = (markovTaiRate - 0.5) * 36;
+      const lastLabel = lastResult === 'tai' ? 'Tài' : 'Xỉu';
+      const favoredNext = markovTaiRate > 0.5 ? 'Tài' : 'Xỉu';
+      const favoredPct = Math.round(Math.max(markovTaiRate, 1 - markovTaiRate) * 100);
+      markovNote = `Lịch sử bàn sau ${lastLabel}: ${favoredPct}% ra ${favoredNext}`;
+    }
+
+    // 6. ĐÁNH GIÁ YẾU TỐ 4: TỶ LỆ CÂN BẰNG 20 PHIÊN GẦN NHẤT (Mean Reversion)
+    const recent20 = validHistory.slice(-20);
+    const countTai = recent20.filter(s => s.result === 'tai').length;
+    const countXiu = recent20.filter(s => s.result === 'xiu').length;
+    const totalRecent = countTai + countXiu || 1;
+    let balanceScore = 0;
+    let balanceNote = '';
+    if (totalRecent >= 6) {
+      const diff = countTai - countXiu;
+      balanceScore = -(diff * 2.8);
+      balanceScore = Math.max(-18, Math.min(18, balanceScore));
+      if (Math.abs(diff) >= 3) {
+        balanceNote = diff > 0 
+          ? `20 phiên gần: Tài đang lệch +${diff} ván, xu hướng bù Xỉu` 
+          : `20 phiên gần: Xỉu đang lệch +${Math.abs(diff)} ván, xu hướng bù Tài`;
+      }
+    }
+
+    // 7. TÍNH ĐIỂM THẾ CẦU (Pattern Scoring)
+    let trendBadge = 'Cầu Tự Nhiên';
+
+    if (pattern.includes('Cầu Bệt')) {
+      const isBetTai = pattern.includes('Tài');
+      const matchNum = pattern.match(/\d+/);
+      const streakLen = matchNum ? parseInt(matchNum[0], 10) : 3;
+      trendBadge = isBetTai ? `Theo Bệt Tài (${streakLen}v)` : `Theo Bệt Xỉu (${streakLen}v)`;
+      
+      if (streakLen <= 4) {
+        // Bệt 3-4 ván: Quán tính đang mạnh nhất, theo bệt
+        patternScore = isBetTai ? +28 : -28;
+      } else {
+        // Bệt 5+ ván: Đã bệt dài, tiếp tục theo nhưng giảm trọng số
+        patternScore = isBetTai ? +16 : -16;
+      }
+    } else if (pattern.includes('Cầu Đảo')) {
+      const nextSuggest = lastResult === 'tai' ? 'xiu' : 'tai';
+      trendBadge = `Theo Đảo ➔ ${nextSuggest.toUpperCase()}`;
+      patternScore = nextSuggest === 'tai' ? +24 : -24;
+    } else if (pattern.includes('2-2')) {
+      const nextSuggest = lastResult === 'tai' ? 'xiu' : 'tai';
+      trendBadge = `Cầu Đôi ➔ ${nextSuggest.toUpperCase()}`;
+      patternScore = nextSuggest === 'tai' ? +20 : -20;
+    }
+
+    // 8. TỔNG HỢP TOÀN BỘ 4 YẾU TỐ LỊCH SỬ (COMPOSITE DECISION MATRIX)
+    const finalScore = patternScore + momentumScore + markovScore + balanceScore;
+    let finalTaiProb = 50 + (finalScore * 0.7);
+    finalTaiProb = Math.max(30, Math.min(75, finalTaiProb));
+    const finalXiuProb = 100 - finalTaiProb;
+
+    // 9. QUYẾT ĐỊNH CHỐT (THE FINAL DECISION)
+    let decision = 'THEO DÕI';
+    let decisionClass = 'dec-neutral';
+    let confidence = Math.round(Math.max(finalTaiProb, finalXiuProb));
+
+    if (finalTaiProb >= 53.5) {
+      decision = 'ĐÁNH TÀI';
+      decisionClass = 'dec-tai';
+    } else if (finalXiuProb >= 53.5) {
+      decision = 'ĐÁNH XỈU';
+      decisionClass = 'dec-xiu';
+    } else {
+      decision = 'QUAN SÁT / ĐI ĐỀU';
+      decisionClass = 'dec-neutral';
+      confidence = 50;
+    }
+
+    // 10. TỔNG HỢP DẪN CHỨNG ĐÃ SOI
+    const reasons = [];
+    if (pattern && !pattern.includes('ngẫu nhiên')) reasons.push(pattern);
+    if (momentumNote) reasons.push(momentumNote);
+    if (markovNote) reasons.push(markovNote);
+    if (balanceNote) reasons.push(balanceNote);
+
+    const trendAdvice = reasons.length > 0 
+      ? reasons.join(' • ') 
+      : 'Đã soi lại lịch sử: Hai cửa cân bằng, nên đánh nhỏ thăm dò hoặc quan sát thêm 1 ván.';
+
+    const probTheoTai = `${finalTaiProb.toFixed(1)}%`.replace('.', ',');
+    const probTheoXiu = `${finalXiuProb.toFixed(1)}%`.replace('.', ',');
     const probTheoTriple = '2,78%';
 
     return {
       nextSessionId,
+      decision,
+      decisionClass,
+      confidence: `${confidence}%`,
+      recent5Symbols,
       probTheoTai,
       probTheoXiu,
       probTheoTriple,
@@ -320,7 +403,11 @@
         <!-- CỘT 2: TÍNH TOÁN PHIÊN TIẾP THEO -->
         <div class="tx-banner-col tx-col-next">
           <div class="tx-col-label">DỰ BÁO TIẾP THEO: ${forecast.nextSessionId}</div>
-          <div class="tx-col-trend-badge">${forecast.trendBadge}</div>
+          <div class="tx-banner-decision-row">
+            <span class="tx-banner-decision-badge ${forecast.decisionClass}">🎯 ${forecast.decision} (${forecast.confidence})</span>
+            <span class="tx-col-trend-badge">${forecast.trendBadge}</span>
+          </div>
+          <div class="tx-banner-review-trail">🧠 Đã soi ván trước: <strong>${forecast.recent5Symbols}</strong></div>
           <div class="tx-col-prob-row">
             <span class="tx-prob-pill prob-tai">Tài: ${forecast.probTheoTai}</span>
             <span class="tx-prob-pill prob-xiu">Xỉu: ${forecast.probTheoXiu}</span>
@@ -522,7 +609,8 @@
         <div class="tx-robot-quick-tag" id="txRobotQuickTag" style="display: none;">
           <div class="tx-quick-tag-bubble">
             <div class="tx-tag-res" id="txQuickTagRes">TÀI 13 [6-2-5]</div>
-            <div class="tx-tag-next" id="txQuickTagNext">Kế tiếp: #3340097</div>
+            <div class="tx-tag-decision" id="txQuickTagDecision">🎯 ĐÁNH TÀI (65%)</div>
+            <div class="tx-tag-next" id="txQuickTagNext">Kế tiếp: #3340097 • Bệt Tài</div>
           </div>
         </div>
       </div>
@@ -566,11 +654,24 @@
             <div class="tx-res-pattern-line" id="txHudPattern">🎲 Đang theo dõi chuỗi cầu...</div>
           </div>
 
-          <!-- KHỐI 2: DỰ BÁO TOÁN HỌC CHO PHIÊN TIẾP THEO -->
+          <!-- KHỐI 2: DỰ BÁO TOÁN HỌC & QUYẾT ĐỊNH CHO PHIÊN TIẾP THEO -->
           <div class="tx-p-card tx-p-card-forecast" id="txPanelForecastCard">
             <div class="tx-forecast-top-row">
               <span class="tx-forecast-id" id="txNextSessionId">Phiên kế tiếp: #3340097</span>
               <span class="tx-forecast-badge" id="txNextTrendBadge">DỰ BÁO CẦU</span>
+            </div>
+
+            <!-- Khối Quyết Định Chốt Sau Khi Soi Lịch Sử -->
+            <div class="tx-decision-banner" id="txDecisionBanner">
+              <span class="tx-decision-label">🎯 QUYẾT ĐỊNH:</span>
+              <span class="tx-decision-val" id="txDecisionVal">ĐÁNH TÀI</span>
+              <span class="tx-decision-conf" id="txDecisionConf">(65,0%)</span>
+            </div>
+
+            <!-- Khối Soi Lại Chuỗi Ván Trước -->
+            <div class="tx-history-review-row" id="txHistoryReviewRow">
+              <span class="tx-review-tag">🧠 Đã soi các ván trước:</span>
+              <span class="tx-review-seq" id="txReviewSeq">Xỉu ➔ Tài ➔ Tài</span>
             </div>
 
             <div class="tx-forecast-probs-row">
@@ -580,7 +681,7 @@
             </div>
 
             <div class="tx-forecast-advice-text" id="txNextAdvice">
-              ⚖️ Biến cố độc lập: Xác suất 2 cửa cân bằng (48,61%)
+              ⚖️ Đang xem lại các kết quả trước đó để đưa ra quyết định...
             </div>
           </div>
 
@@ -932,6 +1033,11 @@
       if (quickTagNext && forecast) {
         quickTagNext.textContent = `Phiên sau ${forecast.nextSessionId} • ${forecast.trendBadge}`;
       }
+      const quickTagDecision = document.getElementById('txQuickTagDecision');
+      if (quickTagDecision && forecast) {
+        quickTagDecision.textContent = `🎯 Ván sau: ${forecast.decision} (${forecast.confidence})`;
+        quickTagDecision.className = `tx-tag-decision ${forecast.decisionClass}`;
+      }
       if (!watcherState.settings.bubbleVisible) {
         quickTag.style.display = 'block';
         quickTag.className = `tx-robot-quick-tag tag-${session.result} animate-pop`;
@@ -967,6 +1073,21 @@
     const chipXiu = document.getElementById('txProbChipXiu');
     if (chipTai && forecast) chipTai.innerHTML = `Tài: <strong>${forecast.probTheoTai}</strong>`;
     if (chipXiu && forecast) chipXiu.innerHTML = `Xỉu: <strong>${forecast.probTheoXiu}</strong>`;
+
+    // Cập nhật Banner Quyết Định & Chuỗi ván trước đã soi
+    const decVal = document.getElementById('txDecisionVal');
+    const decConf = document.getElementById('txDecisionConf');
+    const decBanner = document.getElementById('txDecisionBanner');
+    if (decVal && forecast) decVal.textContent = forecast.decision;
+    if (decConf && forecast) decConf.textContent = `(${forecast.confidence})`;
+    if (decBanner && forecast) {
+      decBanner.className = `tx-decision-banner ${forecast.decisionClass}`;
+    }
+
+    const revSeq = document.getElementById('txReviewSeq');
+    if (revSeq && forecast) {
+      revSeq.textContent = forecast.recent5Symbols || 'Đang tích lũy chuỗi';
+    }
 
     // Hiệu ứng phát sáng đường viền bảng bên cạnh
     if (sidePanel) {
