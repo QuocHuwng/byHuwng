@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>byHuwng – Probability Analyzer</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body class="theme-dark">
+  <div class="app-container" id="appContainer">
+    <!-- Top Header Bar -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-die">
+          <span class="pip pip-gold"></span>
+        </div>
+        <div class="brand-text">
+          <h1>byHuwng</h1>
+          <span class="brand-subtitle">PROBABILITY ANALYZER</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="toggleExpandBtn" class="btn-icon" title="Chuyển đổi giao diện thu gọn / mở rộng">
+          <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M10 21v-2H6.41l4.5-4.5l-1.41-1.41l-4.5 4.5V14H3v7h7m11-11h-2V6.41l-4.5 4.5l-1.41-1.41l4.5-4.5H14V3h7v7Z"/></svg>
+        </button>
+        <button id="openTabBtn" class="btn-icon" title="Mở trong tab trình duyệt mới">
+          <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M14 3v2h3.59l-9.83 9.83l1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Statistical Metric Highlights -->
+    <section class="metrics-grid">
+      <div class="metric-card metric-tai">
+        <div class="metric-label">XÁC SUẤT TÀI</div>
+        <div class="metric-value" id="cardTaiTheo">48,61%</div>
+        <div class="metric-sub" id="cardTaiEmp">Thực tế: 0,00% (0)</div>
+      </div>
+      <div class="metric-card metric-xiu">
+        <div class="metric-label">XÁC SUẤT XỈU</div>
+        <div class="metric-value" id="cardXiuTheo">48,61%</div>
+        <div class="metric-sub" id="cardXiuEmp">Thực tế: 0,00% (0)</div>
+      </div>
+      <div class="metric-card metric-triple">
+        <div class="metric-label">BỘ BA ĐỒNG NHẤT</div>
+        <div class="metric-value" id="cardTripleTheo">2,78%</div>
+        <div class="metric-sub" id="cardTripleEmp">6 / 216 tổ hợp</div>
+      </div>
+      <div class="metric-card metric-combinations">
+        <div class="metric-label">TỔNG TỔ HỢP</div>
+        <div class="metric-value" id="cardTotalCombos">216</div>
+        <div class="metric-sub">Không gian mẫu 6³</div>
+      </div>
+      <div class="metric-card metric-sessions">
+        <div class="metric-label">ĐÃ PHÂN TÍCH</div>
+        <div class="metric-value" id="cardTotalSessions">0</div>
+        <div class="metric-sub" id="cardCurrentStreakBadge">Chưa có chuỗi</div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="tab-input">
+        <span class="tab-icon">🎲</span>
+        <span class="tab-label">Nhập Kết Quả</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-analytics">
+        <span class="tab-icon">📈</span>
+        <span class="tab-label">Phân Tích Cầu</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-simulation">
+        <span class="tab-icon">⚡</span>
+        <span class="tab-label">Monte Carlo</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-history">
+        <span class="tab-icon">📜</span>
+        <span class="tab-label">Lịch Sử & CSV</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-science">
+        <span class="tab-icon">🧠</span>
+        <span class="tab-label">Lý Thuyết</span>
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- TAB 1: NHẬP KẾT QUẢ -->
+      <div class="tab-pane active" id="tab-input">
+        <div class="input-panel-card">
+          <div class="card-title-row">
+            <h3>Nhập 3 Viên Xúc Xắc</h3>
+            <span class="card-badge" id="liveResultBadge">Chờ chọn</span>
+          </div>
+
+          <!-- 3 Interactive Dice -->
+          <div class="dice-selector-row">
+            <div class="die-card" id="dieCard1" data-die="1" title="Nhấp để tăng giá trị xúc xắc 1">
+              <span class="die-label">Xúc xắc 1</span>
+              <div class="die-face die-val-1" id="dieVisual1">
+                <span class="dot dot-center"></span>
+              </div>
+              <div class="die-stepper">
+                <button type="button" class="die-btn minus" data-target="1">-</button>
+                <span class="die-number" id="dieVal1">1</span>
+                <button type="button" class="die-btn plus" data-target="1">+</button>
+              </div>
+            </div>
+
+            <div class="die-card" id="dieCard2" data-die="2" title="Nhấp để tăng giá trị xúc xắc 2">
+              <span class="die-label">Xúc xắc 2</span>
+              <div class="die-face die-val-2" id="dieVisual2">
+                <span class="dot dot-tl"></span>
+                <span class="dot dot-br"></span>
+              </div>
+              <div class="die-stepper">
+                <button type="button" class="die-btn minus" data-target="2">-</button>
+                <span class="die-number" id="dieVal2">2</span>
+                <button type="button" class="die-btn plus" data-target="2">+</button>
+              </div>
+            </div>
+
+            <div class="die-card" id="dieCard3" data-die="3" title="Nhấp để tăng giá trị xúc xắc 3">
+              <span class="die-label">Xúc xắc 3</span>
+              <div class="die-face die-val-3" id="dieVisual3">
+                <span class="dot dot-tl"></span>
+                <span class="dot dot-center"></span>
+                <span class="dot dot-br"></span>
+              </div>
+              <div class="die-stepper">
+                <button type="button" class="die-btn minus" data-target="3">-</button>
+                <span class="die-number" id="dieVal3">3</span>
+                <button type="button" class="die-btn plus" data-target="3">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Score Summary Bar -->
+          <div class="live-summary-bar">
+            <div class="sum-box">
+              <span class="sum-title">Tổng điểm:</span>
+              <span class="sum-number" id="liveSumValue">6</span>
+            </div>
+            <div class="class-box" id="liveClassificationBox">
+              <span class="class-badge badge-xiu" id="liveClassText">XỈU (4 - 10)</span>
+            </div>
+            <div class="extra-box" id="liveExtraInfo">
+              Chẵn • Không bộ đôi
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="btn-group-input">
+            <button id="addSessionBtn" class="btn btn-primary btn-gold">
+              <span>➕ Lưu Phiên Này</span>
+            </button>
+            <button id="randomRollBtn" class="btn btn-secondary">
+              <span>🎲 Gieo Ngẫu Nhiên</span>
+            </button>
+          </div>
+
+          <!-- Quick Result Entry (Fast Add) -->
+          <div class="quick-add-section">
+            <div class="quick-title">Nhập Nhanh Kết Quả:</div>
+            <div class="quick-btn-grid">
+              <button id="quickTaiBtn" class="btn-quick btn-quick-tai" title="Thêm nhanh 1 phiên Tài (điểm ngẫu nhiên 11-17)">
+                ⚡ +1 TÀI
+              </button>
+              <button id="quickXiuBtn" class="btn-quick btn-quick-xiu" title="Thêm nhanh 1 phiên Xỉu (điểm ngẫu nhiên 4-10)">
+                ⚡ +1 XỈU
+              </button>
+              <button id="quickTripleBtn" class="btn-quick btn-quick-triple" title="Thêm nhanh 1 phiên Bộ ba (1-1-1 đến 6-6-6)">
+                ⚡ +1 BỘ BA
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bead Road (Cầu Giọt Nước - Casino Style) -->
+        <div class="card-bead-road">
+          <div class="card-header-flex">
+            <h4>Bảng Cầu Giọt Nước (Gần nhất)</h4>
+            <span class="bead-legend">
+              <span class="dot-legend dot-tai"></span> Tài
+              <span class="dot-legend dot-xiu"></span> Xỉu
+              <span class="dot-legend dot-triple"></span> Bộ ba
+            </span>
+          </div>
+          <div class="bead-road-container" id="beadRoadContainer">
+            <!-- Dynamically generated bead circles -->
+            <div class="empty-state-text" id="emptyBeadNotice">Chưa có phiên nào. Hãy gieo xúc xắc hoặc thêm nhanh để xem bảng cầu.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: PHÂN TÍCH CẦU & XU HƯỚNG -->
+      <div class="tab-pane" id="tab-analytics">
+        <!-- Filter Window Options -->
+        <div class="analytics-filter-row">
+          <span class="filter-label">Khung phân tích:</span>
+          <div class="filter-btn-group" id="windowFilterGroup">
+            <button class="filter-btn" data-window="10">10</button>
+            <button class="filter-btn" data-window="20">20</button>
+            <button class="filter-btn" data-window="50">50</button>
+            <button class="filter-btn" data-window="100">100</button>
+            <button class="filter-btn" data-window="500">500</button>
+            <button class="filter-btn active" data-window="all">Tất cả</button>
+          </div>
+        </div>
+
+        <!-- Pattern Recognition Card -->
+        <div class="card-pattern-status" id="patternCard">
+          <div class="pattern-header">
+            <span class="pattern-title-label">Nhận Diện Cầu Hiện Tại:</span>
+            <span class="pattern-badge badge-active-pattern" id="activePatternBadge">Đang cập nhật</span>
+          </div>
+          <div class="pattern-description" id="activePatternDesc">
+            Đang phân tích các phiên gần nhất...
+          </div>
+        </div>
+
+        <!-- Detailed Statistical Comparison Table -->
+        <div class="card-stats-table">
+          <div class="table-responsive">
+            <table class="styled-table" id="comparisonTable">
+              <thead>
+                <tr>
+                  <th>Cửa cược</th>
+                  <th>Số lần</th>
+                  <th>Thực tế</th>
+                  <th>Lý thuyết</th>
+                  <th>Độ lệch</th>
+                  <th>95% CI</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="rowStatsTai">
+                  <td><span class="tag-pill tag-tai">TÀI</span></td>
+                  <td id="statTaiCount">0</td>
+                  <td id="statTaiEmp">0.00%</td>
+                  <td>48.61%</td>
+                  <td id="statTaiDelta">0.00%</td>
+                  <td id="statTaiCI" class="text-xs">0% - 0%</td>
+                </tr>
+                <tr id="rowStatsXiu">
+                  <td><span class="tag-pill tag-xiu">XỈU</span></td>
+                  <td id="statXiuCount">0</td>
+                  <td id="statXiuEmp">0.00%</td>
+                  <td>48.61%</td>
+                  <td id="statXiuDelta">0.00%</td>
+                  <td id="statXiuCI" class="text-xs">0% - 0%</td>
+                </tr>
+                <tr id="rowStatsTriple">
+                  <td><span class="tag-pill tag-triple">BỘ BA</span></td>
+                  <td id="statTripleCount">0</td>
+                  <td id="statTripleEmp">0.00%</td>
+                  <td>2.78%</td>
+                  <td id="statTripleDelta">0.00%</td>
+                  <td id="statTripleCI" class="text-xs">0% - 0%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Streak and Transition Metrics -->
+        <div class="streak-transition-grid">
+          <div class="mini-card">
+            <div class="mini-title">Chuỗi Hiện Tại</div>
+            <div class="mini-val text-gold" id="streakCurrentVal">Chưa có</div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-title">Bệt Tài Dài Nhất</div>
+            <div class="mini-val text-red" id="streakMaxTaiVal">0 phiên</div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-title">Bệt Xỉu Dài Nhất</div>
+            <div class="mini-val text-green" id="streakMaxXiuVal">0 phiên</div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-title">Chuyển Đảo (T ⇄ X)</div>
+            <div class="mini-val text-blue" id="transitionFlipRate">0.00%</div>
+          </div>
+        </div>
+
+        <!-- Sum Distribution Chart (3 to 18) -->
+        <div class="card-chart">
+          <div class="card-header-flex">
+            <h4>Phân Phối Điểm Tổng (3 - 18)</h4>
+            <span class="chart-legend">
+              <span class="legend-bar"></span> Thực tế
+              <span class="legend-line"></span> Lý thuyết
+            </span>
+          </div>
+          <div class="chart-container" id="sumChartContainer">
+            <!-- Custom responsive SVG Bar Chart -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: MÔ PHỎNG MONTE CARLO -->
+      <div class="tab-pane" id="tab-simulation">
+        <div class="sim-control-card">
+          <div class="sim-header">
+            <h3>Mô Phỏng Ngẫu Nhiên Monte Carlo</h3>
+            <span class="text-xs text-muted">Kiểm chứng luật số lớn qua hàng vạn lượt gieo</span>
+          </div>
+
+          <div class="sim-iterations-selector">
+            <label>Số lượt mô phỏng:</label>
+            <div class="sim-btn-grid" id="simIterationsGroup">
+              <button class="sim-btn" data-iter="1000">1.000</button>
+              <button class="sim-btn" data-iter="10000">10.000</button>
+              <button class="sim-btn" data-iter="50000">50.000</button>
+              <button class="sim-btn active" data-iter="100000">100.000</button>
+              <button class="sim-btn" data-iter="500000">500.000</button>
+              <button class="sim-btn" data-iter="1000000">1.000.000</button>
+            </div>
+          </div>
+
+          <button id="runSimBtn" class="btn btn-primary btn-gold btn-block">
+            <span>🚀 Bắt Đầu Mô Phỏng Ngay</span>
+          </button>
+
+          <div class="sim-status-row" id="simStatusRow" style="display: none;">
+            <span id="simTimeNotice">Thời gian chạy: 0.00 ms</span>
+            <span id="simChiSquareNotice">Chi-Square: Chuẩn</span>
+          </div>
+        </div>
+
+        <!-- Simulation Results Display -->
+        <div class="sim-results-card" id="simResultsCard">
+          <div class="sim-metrics-grid">
+            <div class="sim-metric-box metric-tai">
+              <span class="sim-metric-title">TÀI (Mô phỏng)</span>
+              <span class="sim-metric-val" id="simResTaiPercent">48.61%</span>
+              <span class="sim-metric-sub" id="simResTaiDiff">Lệch: 0.00%</span>
+            </div>
+            <div class="sim-metric-box metric-xiu">
+              <span class="sim-metric-title">XỈU (Mô phỏng)</span>
+              <span class="sim-metric-val" id="simResXiuPercent">48.61%</span>
+              <span class="sim-metric-sub" id="simResXiuDiff">Lệch: 0.00%</span>
+            </div>
+            <div class="sim-metric-box metric-triple">
+              <span class="sim-metric-title">BỘ BA (Mô phỏng)</span>
+              <span class="sim-metric-val" id="simResTriplePercent">2.78%</span>
+              <span class="sim-metric-sub" id="simResTripleDiff">Lệch: 0.00%</span>
+            </div>
+          </div>
+
+          <div class="sim-chart-container" id="simChartContainer">
+            <!-- SVG Monte Carlo Comparative Chart -->
+          </div>
+
+          <div class="sim-table-wrap">
+            <table class="styled-table text-xs">
+              <thead>
+                <tr>
+                  <th>Tổng</th>
+                  <th>Số lần xuất hiện</th>
+                  <th>Tần suất %</th>
+                  <th>Lý thuyết %</th>
+                  <th>Sai số chuẩn (SE)</th>
+                </tr>
+              </thead>
+              <tbody id="simSumTableBody">
+                <!-- Dynamically populated rows for sums 3..18 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: LỊCH SỬ & DỮ LIỆU CSV -->
+      <div class="tab-pane" id="tab-history">
+        <!-- History Action Bar -->
+        <div class="history-actions-bar">
+          <button id="exportCsvBtn" class="btn btn-sm btn-secondary" title="Tải file CSV">
+            📥 Xuất CSV
+          </button>
+          <label class="btn btn-sm btn-secondary file-upload-label" title="Nhập dữ liệu từ file CSV">
+            📤 Nhập CSV
+            <input type="file" id="importCsvInput" accept=".csv" style="display: none;">
+          </label>
+          <button id="seedRoomDataBtn" class="btn btn-sm btn-gold" title="Nạp 21 phiên thực tế từ bàn cược #3340096 trong ảnh">
+            📷 Nạp Bàn Cược #3340096
+          </button>
+          <button id="seedSampleDataBtn" class="btn btn-sm btn-gold-outline" title="Tạo 50 phiên ngẫu nhiên để thử nghiệm ngay">
+            🎲 Nạp 50 Phiên Mẫu
+          </button>
+          <button id="clearHistoryBtn" class="btn btn-sm btn-danger-outline" title="Xóa toàn bộ lịch sử">
+            🗑️ Xóa Tất Cả
+          </button>
+        </div>
+
+        <!-- History Table -->
+        <div class="history-table-container">
+          <table class="styled-table" id="historyTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Thời gian</th>
+                <th>3 Xúc xắc</th>
+                <th>Tổng</th>
+                <th>Kết quả</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <!-- Dynamically populated history rows -->
+            </tbody>
+          </table>
+          <div class="empty-state-text" id="emptyHistoryNotice" style="display: none;">
+            Chưa có phiên nào được ghi lại.
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: KHOA HỌC & ĐỘC LẬP THỐNG KÊ -->
+      <div class="tab-pane" id="tab-science">
+        <div class="science-card">
+          <div class="science-header">
+            <div class="science-icon">⚖️</div>
+            <div>
+              <h3>Bản Chất Xác Suất & Quy Luật Độc Lập</h3>
+              <span class="text-xs text-gold">Phân tích toán học thuần túy dựa trên Lý thuyết xác suất</span>
+            </div>
+          </div>
+
+          <div class="science-content">
+            <div class="science-section">
+              <h4>1. Tính Độc Lập Hoàn Toàn Của Từng Phiên Gieo</h4>
+              <p>
+                Mỗi lần gieo xúc xắc là một biến cố độc lập (Independent Trials). Về mặt toán học:
+              </p>
+              <div class="math-box">
+                P(A<sub>n+1</sub> | A<sub>1</sub>, A<sub>2</sub>, ..., A<sub>n</sub>) = P(A<sub>n+1</sub>) = 48,61%
+              </div>
+              <p>
+                Xúc xắc vật lý hay thuật toán tạo số ngẫu nhiên chuẩn (PRNG) đều <strong>hoàn toàn không có bộ nhớ</strong>. Lần gieo thứ 100 không hề "biết" 99 lần trước đã ra kết quả gì.
+              </p>
+            </div>
+
+            <div class="science-section alert-gambler">
+              <h4>2. Ngụy Biện Con Bạc (The Gambler's Fallacy)</h4>
+              <p>
+                Sai lầm phổ biến nhất trong các trò chơi xác suất là tin rằng: <em>"Nếu đã ra Tài 8 lần liên tiếp (cầu bệt), thì lần tới chắc chắn sẽ ra Xỉu để cân bằng lại."</em>
+              </p>
+              <p>
+                Toán học chứng minh điều này hoàn toàn sai lầm. Luật Số Lớn (Law of Large Numbers) không hoạt động bằng cách "bù trừ" kết quả quá khứ, mà hoạt động bằng cách <strong>làm loãng (diluting)</strong> sự chênh lệch khi số lượng phép thử n tiến dần đến vô cực.
+              </p>
+            </div>
+
+            <div class="science-section">
+              <h4>3. Tại Sao Lại Có Lợi Thế Nhà Cái (House Edge)?</h4>
+              <p>
+                Trong trò chơi Tài Xỉu 3 xúc xắc, tổng số tổ hợp là 6³ = 216:
+              </p>
+              <ul class="science-list">
+                <li><strong>Xỉu (Tổng 4 - 10 trừ bộ ba):</strong> 105 tổ hợp (48,61%)</li>
+                <li><strong>Tài (Tổng 11 - 17 trừ bộ ba):</strong> 105 tổ hợp (48,61%)</li>
+                <li><strong>Bộ ba đồng nhất (1-1-1 đến 6-6-6):</strong> 6 tổ hợp (2,78%)</li>
+              </ul>
+              <p>
+                Chính 6 tổ hợp bộ ba (2,78%) tạo nên lợi thế toán học cho nhà cái: khi ra bộ ba, người đặt cửa Tài hoặc Xỉu thông thường đều thua.
+              </p>
+            </div>
+
+            <div class="science-section">
+              <h4>4. Mục Đích Của Tiện Ích</h4>
+              <p>
+                Tiện ích <strong>byHuwng</strong> được thiết kế cho mục đích học thuật, nghiên cứu xác suất và thống kê thực nghiệm. Tiện ích giúp người dùng quan sát trực quan sự hội tụ của dữ liệu, hiểu rõ các khoảng tin cậy thống kê và tránh các bẫy tâm lý sai lầm khi phán đoán xác suất.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer Bar -->
+    <footer class="app-footer">
+      <span>byHuwng v1.2 • Offline • Không gửi dữ liệu</span>
+      <span class="footer-badge">Manifest V3</span>
+    </footer>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

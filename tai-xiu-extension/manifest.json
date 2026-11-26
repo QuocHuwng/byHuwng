@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "byHuwng – Probability Analyzer",
+  "short_name": "byHuwng",
+  "version": "1.2.0",
+  "description": "byHuwng - Tự động bắt phiên game live (#3340096), đọc kết quả phiên vừa xong và tính toán xác suất toán học cho phiên tiếp theo.",
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    },
+    "default_title": "byHuwng – Probability Analyzer"
+  },
+  "permissions": [
+    "storage",
+    "notifications"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["hook.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "minimum_chrome_version": "100"
+}

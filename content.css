@@ -1,0 +1,581 @@
+/* ========================================================
+   TAI XIU PRO - Floating HUD & DUAL-PANEL BIG ON-SCREEN BANNER
+   - Column 1: Kết quả phiên vừa xong (#3340096)
+   - Column 2: Tính toán phiên tiếp theo (#3340097)
+   ======================================================== */
+
+/* ========================================================
+   1. DUAL-PANEL BIG ON-SCREEN BANNER
+   ======================================================== */
+.tx-screen-banner {
+  position: fixed;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-140px) scale(0.9);
+  width: 94%;
+  max-width: 600px;
+  background: rgba(13, 16, 24, 0.98);
+  border: 2px solid #d4af37;
+  border-radius: 16px;
+  padding: 14px 18px 12px 18px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(212, 175, 55, 0.35);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #f8fafc;
+  z-index: 2147483647;
+  user-select: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  backdrop-filter: blur(14px);
+}
+
+.tx-screen-banner.animate-in {
+  transform: translateX(-50%) translateY(0) scale(1);
+  opacity: 1;
+}
+
+.tx-screen-banner.animate-out {
+  transform: translateX(-50%) translateY(-140px) scale(0.9);
+  opacity: 0;
+}
+
+.tx-screen-banner.is-tai {
+  border-color: #ef4444;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(239, 68, 68, 0.45);
+}
+.tx-screen-banner.is-xiu {
+  border-color: #10b981;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(16, 185, 129, 0.45);
+}
+.tx-screen-banner.is-triple {
+  border-color: #a855f7;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(168, 85, 247, 0.45);
+}
+
+.tx-banner-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.tx-banner-tag-badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #d4af37;
+  text-transform: uppercase;
+}
+
+.tx-banner-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.tx-banner-close:hover {
+  color: #ef4444;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* DUAL GRID: 2 COLUMNS */
+.tx-banner-dual-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tx-banner-divider {
+  width: 1px;
+  height: 90px;
+  background: linear-gradient(180deg, transparent 0%, rgba(212, 175, 55, 0.5) 50%, transparent 100%);
+}
+
+.tx-banner-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.tx-col-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.tx-col-big-res {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.is-tai .tx-col-big-res { color: #f87171; text-shadow: 0 0 12px rgba(239, 68, 68, 0.5); }
+.is-xiu .tx-col-big-res { color: #34d399; text-shadow: 0 0 12px rgba(16, 185, 129, 0.5); }
+.is-triple .tx-col-big-res { color: #c084fc; text-shadow: 0 0 12px rgba(168, 85, 247, 0.5); }
+
+.tx-col-dice-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.tx-b-die {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(145deg, #ffffff, #e2e8f0);
+  color: #0f172a;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 900;
+  box-shadow: inset 0 -2px 3px rgba(0,0,0,0.25), 0 3px 6px rgba(0,0,0,0.5);
+}
+
+.tx-b-die.die-1, .tx-b-die.die-4 {
+  color: #dc2626;
+}
+
+.tx-col-sub {
+  font-size: 11px;
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+/* Col Next (Phiên tiếp theo) */
+.tx-col-trend-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #d4af37;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid #d4af37;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.tx-col-prob-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.tx-prob-pill {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.prob-tai { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.prob-xiu { background: rgba(16, 185, 129, 0.2); color: #86efac; }
+.prob-b3 { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+
+.tx-col-advice {
+  font-size: 10px;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+.tx-banner-timer-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: #d4af37;
+  width: 100%;
+  animation: bannerCountdown 6s linear forwards;
+}
+
+@keyframes bannerCountdown {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* ========================================================
+   2. FLOATING HUD WIDGET
+   ======================================================== */
+.tx-pro-hud {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 320px;
+  background: rgba(15, 18, 25, 0.96);
+  border: 1.5px solid #d4af37;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(212, 175, 55, 0.25);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #f8fafc;
+  z-index: 2147483646;
+  user-select: none;
+  backdrop-filter: blur(8px);
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  overflow: hidden;
+}
+
+.tx-pro-hud.is-minimized {
+  width: auto;
+  border-radius: 30px;
+}
+
+.tx-hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, #232938 0%, #171c26 100%);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+  cursor: grab;
+}
+.tx-hud-header:active {
+  cursor: grabbing;
+}
+
+.tx-hud-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tx-hud-logo {
+  font-size: 16px;
+}
+
+.tx-hud-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #d4af37;
+  letter-spacing: 0.5px;
+}
+
+.tx-hud-badge-live {
+  font-size: 8.5px;
+  font-weight: 800;
+  background: #ef4444;
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+  animation: pulseLive 1.5s infinite;
+}
+
+@keyframes pulseLive {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.tx-hud-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.tx-hud-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tx-hud-btn:hover {
+  border-color: #d4af37;
+  color: #d4af37;
+  background: rgba(212, 175, 55, 0.15);
+}
+
+.tx-hud-btn.active {
+  border-color: #d4af37;
+  background: rgba(212, 175, 55, 0.2);
+}
+
+.tx-hud-body {
+  padding: 10px 12px;
+}
+
+/* Thẻ phiên vừa xong */
+.tx-hud-card {
+  background: #11141c;
+  border: 1px solid #232b3d;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.tx-hud-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.tx-hud-session {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.tx-hud-badge-res {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.tx-hud-badge-res.badge-tai {
+  background: rgba(239, 68, 68, 0.25);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+}
+
+.tx-hud-badge-res.badge-xiu {
+  background: rgba(16, 185, 129, 0.25);
+  border: 1px solid #10b981;
+  color: #86efac;
+}
+
+.tx-hud-badge-res.badge-triple {
+  background: rgba(168, 85, 247, 0.25);
+  border: 1px solid #a855f7;
+  color: #d8b4fe;
+}
+
+.tx-hud-dice-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tx-hud-die {
+  width: 26px;
+  height: 26px;
+  background: #f8fafc;
+  color: #0f172a;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.tx-hud-sum {
+  font-size: 13px;
+  font-weight: 800;
+  color: #d4af37;
+  margin-left: 6px;
+}
+
+.tx-hud-pattern {
+  font-size: 10.5px;
+  color: #38bdf8;
+  font-weight: 600;
+  border-top: 1px dashed #232b3d;
+  padding-top: 5px;
+}
+
+/* Thẻ tính phiên tiếp theo */
+.tx-hud-next-card {
+  background: linear-gradient(135deg, #131c2e 0%, #0e1422 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.tx-next-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.tx-next-id {
+  font-size: 11px;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.tx-next-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #d4af37;
+  background: rgba(212, 175, 55, 0.15);
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.tx-next-probs {
+  font-size: 10.5px;
+  color: #cbd5e1;
+  margin-bottom: 4px;
+}
+.tx-next-probs strong {
+  color: #d4af37;
+}
+
+.tx-next-advice {
+  font-size: 9.5px;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+/* Quick Section */
+.tx-hud-quick-section {
+  margin-bottom: 8px;
+}
+
+.tx-hud-quick-label {
+  font-size: 9.5px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.tx-hud-btn-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-bottom: 6px;
+}
+
+.tx-btn-quick {
+  padding: 5px 2px;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 4px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tx-btn-tai {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #f87171;
+}
+.tx-btn-tai:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.tx-btn-xiu {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+  color: #34d399;
+}
+.tx-btn-xiu:hover {
+  background: #10b981;
+  color: #fff;
+}
+
+.tx-btn-triple {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: #a855f7;
+  color: #c084fc;
+}
+.tx-btn-triple:hover {
+  background: #a855f7;
+  color: #fff;
+}
+
+.tx-hud-input-row {
+  display: flex;
+  gap: 5px;
+}
+
+.tx-hud-input-row input {
+  flex: 1;
+  background: #131722;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  outline: none;
+}
+.tx-hud-input-row input:focus {
+  border-color: #d4af37;
+}
+
+.tx-btn-sub {
+  background: #d4af37;
+  color: #0b0e14;
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.tx-btn-sub:hover {
+  background: #f59e0b;
+}
+
+/* Mini Bead Row */
+.tx-hud-bead-row {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 4px 0;
+}
+
+.tx-mini-bead {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.tx-mini-bead.bead-tai { background: #ef4444; }
+.tx-mini-bead.bead-xiu { background: #10b981; }
+.tx-mini-bead.bead-triple { background: #a855f7; }
+
+/* Minimized Mode */
+.tx-hud-minimized {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  background: #171c26;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.tx-min-icon {
+  font-size: 16px;
+}
+
+.tx-min-text {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #d4af37;
+}
