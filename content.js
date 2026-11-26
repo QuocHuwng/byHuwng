@@ -467,7 +467,7 @@
             <button id="txDockToggleBtn" class="tx-dock-btn tx-dock-toggle" title="Mở rộng / Thu nhỏ bảng bên cạnh">📊</button>
           </div>
           <div class="tx-dock-input-row">
-            <input type="text" id="txDockDiceInput" placeholder="vd: 625" maxlength="16" title="Gõ 3 số xúc xắc (vd: 625) & Enter">
+            <input type="text" id="txDockDiceInput" placeholder="vd: 625 (hoặc 625 123 456)" maxlength="60" title="Gõ 3 số (vd: 625) hoặc chuỗi nhiều ván (vd: 625 123 456) & Enter">
             <button id="txDockSubmitBtn" class="tx-dock-sub" title="Báo kết quả">Báo</button>
           </div>
         </div>
@@ -548,7 +548,7 @@
             </div>
 
             <div class="tx-input-group">
-              <input type="text" id="txManualDiceInput" placeholder="Gõ 3 số xúc xắc (vd: 625) & Enter" maxlength="16">
+              <input type="text" id="txManualDiceInput" placeholder="Gõ 625 hoặc nhiều ván (vd: 625 123 456)" maxlength="60">
               <button id="txManualSubmitBtn" class="tx-input-submit-btn">Báo</button>
             </div>
           </div>
@@ -742,9 +742,28 @@
       });
     }
 
-    // Xử lý chung hàm submit xúc xắc từ chuỗi text
+    // Xử lý chung hàm submit xúc xắc từ chuỗi text (Hỗ trợ cả 1 ván hoặc 4-5 ván liên tiếp)
     const executeDiceSubmit = (rawStr) => {
       const raw = (rawStr || '').trim();
+
+      // Trường hợp 1: Nhập hàng loạt 4 - 5 ván cùng lúc (ví dụ: "625 123 456 233 555" hoặc cách nhau bằng dấu phẩy)
+      const batchMatches = raw.match(/[1-6]{3}/g);
+      if (batchMatches && batchMatches.length > 1) {
+        batchMatches.forEach((dStr) => {
+          const d1 = parseInt(dStr[0], 10);
+          const d2 = parseInt(dStr[1], 10);
+          const d3 = parseInt(dStr[2], 10);
+          handleFinishedSession(null, d1, d2, d3);
+        });
+
+        const input1 = document.getElementById('txManualDiceInput');
+        const input2 = document.getElementById('txDockDiceInput');
+        if (input1) input1.value = '';
+        if (input2) input2.value = '';
+        return true;
+      }
+
+      // Trường hợp 2: Nhập 1 ván thông thường (ví dụ: "625" hoặc "#3340096 625")
       let customSessionId = null;
       let diceStr = raw;
 
@@ -762,14 +781,13 @@
         const d3 = parseInt(diceStr[2], 10);
         handleFinishedSession(customSessionId, d1, d2, d3);
 
-        // Xóa trắng cả 2 ô nhập
         const input1 = document.getElementById('txManualDiceInput');
         const input2 = document.getElementById('txDockDiceInput');
         if (input1) input1.value = '';
         if (input2) input2.value = '';
         return true;
       }
-      alert('Vui lòng gõ 3 số xúc xắc từ 1 đến 6 (ví dụ: 625 hoặc #3340096 625)');
+      alert('Vui lòng gõ 3 số xúc xắc (ví dụ: 625) hoặc chuỗi nhiều ván (ví dụ: 625 123 456 233)');
       return false;
     };
 
