@@ -128,26 +128,76 @@
       nextSessionId = `#${watcherState.currentSessionNumber}`;
     }
 
-    const probTheoTai = '48,61%';
-    const probTheoXiu = '48,61%';
-    const probTheoTriple = '2,78%';
-
     const pattern = detectPatternName(history);
     let trendAdvice = 'Biến cố độc lập: Xác suất 2 cửa cân bằng';
     let trendBadge = 'Cầu Tự Nhiên';
 
+    // TÍNH TOÁN TỶ LỆ DỰ ĐOÁN ĐỘNG THEO THẾ CẦU & LỊCH SỬ (Dynamic Predictive Probability)
+    let probTaiNum = 50.0;
+    let probXiuNum = 50.0;
+
+    const recent20 = history.slice(-20);
+    const countTai = recent20.filter(s => s.result === 'tai').length;
+    const countXiu = recent20.filter(s => s.result === 'xiu').length;
+    const totalRecent = countTai + countXiu || 1;
+
     if (pattern.includes('Cầu Bệt')) {
       const isBetTai = pattern.includes('Tài');
       trendBadge = isBetTai ? 'Theo Bệt Tài' : 'Theo Bệt Xỉu';
-      trendAdvice = `Đang bệt dài. Người chơi có thể bám nhịp bệt hoặc chờ gãy; xác suất toán học ván sau vẫn độc lập 48,61%.`;
+      trendAdvice = `Đang bệt dài. Quán tính chuỗi bệt đang rất mạnh, ưu tiên bám theo ${isBetTai ? 'TÀI' : 'XỈU'}.`;
+      const matchNum = pattern.match(/\d+/);
+      const streakLen = matchNum ? parseInt(matchNum[0], 10) : 3;
+      const boost = Math.min(24, 10 + (streakLen - 2) * 3);
+      if (isBetTai) {
+        probTaiNum = 50 + boost;
+        probXiuNum = 100 - probTaiNum;
+      } else {
+        probXiuNum = 50 + boost;
+        probTaiNum = 100 - probXiuNum;
+      }
     } else if (pattern.includes('Cầu Đảo')) {
       const nextSuggest = finishedSession.result === 'tai' ? 'XỈU' : 'TÀI';
       trendBadge = `Theo Đảo ➔ ${nextSuggest}`;
-      trendAdvice = `Đang có nhịp xen kẽ Tài - Xỉu. Nếu theo nhịp đảo thì phiên tiếp theo là ${nextSuggest}.`;
+      trendAdvice = `Đang có nhịp xen kẽ Tài - Xỉu. Nhịp đảo gợi ý cửa ${nextSuggest}.`;
+      if (nextSuggest === 'TÀI') {
+        probTaiNum = 64.2;
+        probXiuNum = 35.8;
+      } else {
+        probXiuNum = 64.2;
+        probTaiNum = 35.8;
+      }
     } else if (pattern.includes('2-2')) {
-      trendBadge = 'Theo Nhịp 2-2';
-      trendAdvice = 'Nhịp cầu cặp đôi. Quan sát kỹ chuỗi chẵn lẻ.';
+      const nextSuggest = finishedSession.result === 'tai' ? 'XỈU' : 'TÀI';
+      trendBadge = `Cầu Đôi ➔ ${nextSuggest}`;
+      trendAdvice = `Đã hoàn thành cặp đối xứng. Nhịp 2-2 thường đổi nhịp sang ${nextSuggest}.`;
+      if (nextSuggest === 'XỈU') {
+        probXiuNum = 59.5;
+        probTaiNum = 40.5;
+      } else {
+        probTaiNum = 59.5;
+        probXiuNum = 40.5;
+      }
+    } else {
+      // Cầu tự nhiên: Tính độ lệch phân bổ 20 phiên gần nhất (Mean Reversion)
+      if (recent20.length >= 4) {
+        const diff = countTai - countXiu;
+        probXiuNum = +(50 + diff * 1.8).toFixed(1);
+        probXiuNum = Math.max(38, Math.min(62, probXiuNum));
+        probTaiNum = +(100 - probXiuNum).toFixed(1);
+
+        if (diff > 2) {
+          trendAdvice = `Tài đang áp đảo (${countTai}/${totalRecent}). Xu hướng kéo về cân bằng nghiêng về XỈU.`;
+        } else if (diff < -2) {
+          trendAdvice = `Xỉu đang áp đảo (${countXiu}/${totalRecent}). Xu hướng kéo về cân bằng nghiêng về TÀI.`;
+        } else {
+          trendAdvice = 'Xác suất 2 bên cân bằng. Nên đi đều tiền hoặc quan sát.';
+        }
+      }
     }
+
+    const probTheoTai = `${probTaiNum.toFixed(1)}%`.replace('.', ',');
+    const probTheoXiu = `${probXiuNum.toFixed(1)}%`.replace('.', ',');
+    const probTheoTriple = '2,78%';
 
     const recent20 = history.slice(-20);
     const countTai = recent20.filter(s => s.result === 'tai').length;
@@ -276,8 +326,8 @@
           <div class="tx-col-label">DỰ BÁO TIẾP THEO: ${forecast.nextSessionId}</div>
           <div class="tx-col-trend-badge">${forecast.trendBadge}</div>
           <div class="tx-col-prob-row">
-            <span class="tx-prob-pill prob-tai">Tài: 48,61%</span>
-            <span class="tx-prob-pill prob-xiu">Xỉu: 48,61%</span>
+            <span class="tx-prob-pill prob-tai">Tài: ${forecast.probTheoTai}</span>
+            <span class="tx-prob-pill prob-xiu">Xỉu: ${forecast.probTheoXiu}</span>
             <span class="tx-prob-pill prob-b3">Bộ 3: 2,78%</span>
           </div>
           <div class="tx-col-sub tx-col-advice">⚖️ ${forecast.trendAdvice}</div>
@@ -528,9 +578,9 @@
             </div>
 
             <div class="tx-forecast-probs-row">
-              <span class="tx-prob-chip p-tai">Tài: <strong>48,61%</strong></span>
-              <span class="tx-prob-chip p-xiu">Xỉu: <strong>48,61%</strong></span>
-              <span class="tx-prob-chip p-b3">Bộ 3: <strong>2,78%</strong></span>
+              <span class="tx-prob-chip p-tai" id="txProbChipTai">Tài: <strong>50,0%</strong></span>
+              <span class="tx-prob-chip p-xiu" id="txProbChipXiu">Xỉu: <strong>50,0%</strong></span>
+              <span class="tx-prob-chip p-b3" id="txProbChipB3">Bộ 3: <strong>2,78%</strong></span>
             </div>
 
             <div class="tx-forecast-advice-text" id="txNextAdvice">
@@ -916,6 +966,11 @@
     if (nextIdEl && forecast) nextIdEl.textContent = `Phiên kế tiếp: ${forecast.nextSessionId}`;
     if (nextBadgeEl && forecast) nextBadgeEl.textContent = forecast.trendBadge;
     if (nextAdviceEl && forecast) nextAdviceEl.textContent = forecast.trendAdvice;
+
+    const chipTai = document.getElementById('txProbChipTai');
+    const chipXiu = document.getElementById('txProbChipXiu');
+    if (chipTai && forecast) chipTai.innerHTML = `Tài: <strong>${forecast.probTheoTai}</strong>`;
+    if (chipXiu && forecast) chipXiu.innerHTML = `Xỉu: <strong>${forecast.probTheoXiu}</strong>`;
 
     // Hiệu ứng phát sáng đường viền bảng bên cạnh
     if (sidePanel) {
