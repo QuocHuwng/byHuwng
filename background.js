@@ -17,7 +17,7 @@ chrome.runtime.onInstalled.addListener((details) => {
           settings: {
             viewMode: 'compact',
             autoDetect: true,
-            voiceEnabled: true,
+            voiceEnabled: false,
             notifyEnabled: true,
             hudVisible: true
           }

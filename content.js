@@ -1,31 +1,32 @@
 /**
- * TAI XIU PRO - Live Game Watcher, Auto-Sniffer & Next Session Calculator
- * - Intercepts WebSocket & DOM text (Mã phiên #3340096, xúc xắc 6-2-5)
- * - Records & announces the finished session (Phiên vừa xong)
- * - Calculates mathematical probabilities & trend forecast for the NEXT session (Phiên tiếp theo #3340097)
- * - Dual-Panel Big On-Screen Alert Banner
- * - Vietnamese Voice Announcer & Web Audio Chime
+ * byHuwng - Robot Trợ Lý Tài Xỉu Thông Minh & Live Game Watcher
+ * - Giao diện Robot Avatar hoạt hình (Cyber Droid Companion)
+ * - Khi nhập hoặc bắt được kết quả: Báo to rõ TÀI hoặc XỈU ở bên cạnh con robot
+ * - Tính toán xác suất & dự báo thế cầu phiên tiếp theo
+ * - KHÔNG phát giọng nói đọc kết quả (đã tắt theo yêu cầu)
+ * - Bảng điều khiển gắn bên cạnh robot có thể kéo thả, thu gọn linh hoạt
  */
 
 (function () {
   'use strict';
 
-  if (window.__TAI_XIU_PRO_INJECTED__) return;
-  window.__TAI_XIU_PRO_INJECTED__ = true;
+  if (window.__TAI_XIU_ROBOT_INJECTED__) return;
+  window.__TAI_XIU_ROBOT_INJECTED__ = true;
 
   // Local state
   const watcherState = {
     sessions: [],
     settings: {
-      voiceEnabled: true,
+      voiceEnabled: false, // Tắt thông báo giọng nói
       notifyEnabled: true,
       onScreenAlert: true,
       autoDetect: true,
-      hudVisible: true
+      bubbleVisible: true
     },
     lastDetectedSessionId: null,
-    currentSessionNumber: 3340096, // default base seed
-    bannerTimeout: null
+    currentSessionNumber: 3340096,
+    bannerTimeout: null,
+    bubbleTimeout: null
   };
 
   // ==========================================
@@ -38,7 +39,7 @@
       script.onload = () => script.remove();
       (document.head || document.documentElement).appendChild(script);
     } catch (e) {
-      console.warn('[TAI XIU PRO] Hook injection note:', e);
+      console.warn('[byHuwng] Hook note:', e);
     }
   }
 
@@ -114,7 +115,6 @@
    * Tính toán xác suất và phân tích thế cầu cho PHIÊN TIẾP THEO
    */
   function calcNextSessionForecast(finishedSession, history) {
-    // 1. Mã phiên tiếp theo
     let nextSessionId = '#???';
     if (finishedSession.sessionId) {
       const numMatch = finishedSession.sessionId.match(/[0-9]+/);
@@ -128,30 +128,27 @@
       nextSessionId = `#${watcherState.currentSessionNumber}`;
     }
 
-    // 2. Xác suất toán học lý thuyết tiên nghiệm
     const probTheoTai = '48,61%';
     const probTheoXiu = '48,61%';
     const probTheoTriple = '2,78%';
 
-    // 3. Phân tích thế cầu phiên tiếp theo
     const pattern = detectPatternName(history);
-    let trendAdvice = 'Xác suất 2 cửa cân bằng';
+    let trendAdvice = 'Biến cố độc lập: Xác suất 2 cửa cân bằng';
     let trendBadge = 'Cầu Tự Nhiên';
 
     if (pattern.includes('Cầu Bệt')) {
       const isBetTai = pattern.includes('Tài');
       trendBadge = isBetTai ? 'Theo Bệt Tài' : 'Theo Bệt Xỉu';
-      trendAdvice = `Đang bệt dài. Người chơi thường theo bệt hoặc chờ bẻ cầu; toán học khẳng định xác suất ván sau vẫn độc lập 48,61%.`;
+      trendAdvice = `Đang bệt dài. Người chơi có thể bám nhịp bệt hoặc chờ gãy; xác suất toán học ván sau vẫn độc lập 48,61%.`;
     } else if (pattern.includes('Cầu Đảo')) {
       const nextSuggest = finishedSession.result === 'tai' ? 'XỈU' : 'TÀI';
       trendBadge = `Theo Đảo ➔ ${nextSuggest}`;
       trendAdvice = `Đang có nhịp xen kẽ Tài - Xỉu. Nếu theo nhịp đảo thì phiên tiếp theo là ${nextSuggest}.`;
     } else if (pattern.includes('2-2')) {
       trendBadge = 'Theo Nhịp 2-2';
-      trendAdvice = 'Nhịp cầu cặp đôi. Quan sát phiên chẵn lẻ.';
+      trendAdvice = 'Nhịp cầu cặp đôi. Quan sát kỹ chuỗi chẵn lẻ.';
     }
 
-    // 4. Thống kê tỷ lệ 20 phiên gần nhất
     const recent20 = history.slice(-20);
     const countTai = recent20.filter(s => s.result === 'tai').length;
     const countXiu = recent20.filter(s => s.result === 'xiu').length;
@@ -169,7 +166,7 @@
   }
 
   // ==========================================
-  // Crystal Audio Chime (Web Audio API)
+  // Crystal Audio Chime (Hiệu ứng chuông âm thanh nhẹ, KHÔNG GIỌNG NÓI)
   // ==========================================
   function playCasinoChime() {
     try {
@@ -182,58 +179,34 @@
       const gain1 = ctx.createGain();
       osc1.type = 'triangle';
       osc1.frequency.setValueAtTime(523.25, now);
-      gain1.gain.setValueAtTime(0.25, now);
-      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      gain1.gain.setValueAtTime(0.2, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
       osc1.connect(gain1);
       gain1.connect(ctx.destination);
       osc1.start(now);
-      osc1.stop(now + 0.35);
+      osc1.stop(now + 0.3);
 
       const osc2 = ctx.createOscillator();
       const gain2 = ctx.createGain();
       osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(783.99, now + 0.1);
-      gain2.gain.setValueAtTime(0.3, now + 0.1);
-      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+      osc2.frequency.setValueAtTime(783.99, now + 0.08);
+      gain2.gain.setValueAtTime(0.25, now + 0.08);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
       osc2.connect(gain2);
       gain2.connect(ctx.destination);
-      osc2.start(now + 0.1);
-      osc2.stop(now + 0.55);
+      osc2.start(now + 0.08);
+      osc2.stop(now + 0.45);
 
       const osc3 = ctx.createOscillator();
       const gain3 = ctx.createGain();
       osc3.type = 'sine';
-      osc3.frequency.setValueAtTime(1046.50, now + 0.2);
-      gain3.gain.setValueAtTime(0.35, now + 0.2);
-      gain3.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+      osc3.frequency.setValueAtTime(1046.50, now + 0.16);
+      gain3.gain.setValueAtTime(0.3, now + 0.16);
+      gain3.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
       osc3.connect(gain3);
       gain3.connect(ctx.destination);
-      osc3.start(now + 0.2);
-      osc3.stop(now + 0.85);
-    } catch (e) {
-      // pass
-    }
-  }
-
-  // ==========================================
-  // Vietnamese Voice Announcer (Speech Synthesis)
-  // ==========================================
-  function speakVietnamese(text) {
-    if (!watcherState.settings.voiceEnabled) return;
-    if (!window.speechSynthesis) return;
-
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'vi-VN';
-      utterance.rate = 1.05;
-      utterance.pitch = 1.0;
-
-      const voices = window.speechSynthesis.getVoices();
-      const viVoice = voices.find(v => v.lang.includes('vi') || v.lang.includes('VN'));
-      if (viVoice) utterance.voice = viVoice;
-
-      window.speechSynthesis.speak(utterance);
+      osc3.start(now + 0.16);
+      osc3.stop(now + 0.7);
     } catch (e) {
       // pass
     }
@@ -241,7 +214,7 @@
 
   // ==========================================
   // DUAL-PANEL BIG ON-SCREEN ALERT BANNER
-  // (Báo phiên vừa xong + Tính tới phiên tiếp theo)
+  // (Banner to trên đỉnh màn hình khi có kết quả mới)
   // ==========================================
   function showDualOnScreenBanner(finishedSession, forecast) {
     if (!watcherState.settings.onScreenAlert) return;
@@ -279,12 +252,12 @@
     banner.className = `tx-screen-banner ${resultClass} animate-in`;
     banner.innerHTML = `
       <div class="tx-banner-top-bar">
-        <span class="tx-banner-tag-badge">🎲 THÔNG BÁO BÀN CƯỢC TÀI XỈU</span>
+        <span class="tx-banner-tag-badge">🤖 ROBOT byHuwng: KẾT QUẢ PHIÊN</span>
         <button class="tx-banner-close" title="Đóng">✕</button>
       </div>
 
       <div class="tx-banner-dual-grid">
-        <!-- CỘT 1: KẾT QUẢ PHIÊN VỪA XONG -->
+        <!-- CỘT 1: KẾT QUẢ VỪA XONG -->
         <div class="tx-banner-col tx-col-finished">
           <div class="tx-col-label">PHIÊN VỪA XONG: ${sId}</div>
           <div class="tx-col-big-res">${label} ${roll.sum} ĐIỂM</div>
@@ -300,7 +273,7 @@
 
         <!-- CỘT 2: TÍNH TOÁN PHIÊN TIẾP THEO -->
         <div class="tx-banner-col tx-col-next">
-          <div class="tx-col-label">DỰ BÁO PHIÊN TIẾP THEO: ${forecast.nextSessionId}</div>
+          <div class="tx-col-label">DỰ BÁO TIẾP THEO: ${forecast.nextSessionId}</div>
           <div class="tx-col-trend-badge">${forecast.trendBadge}</div>
           <div class="tx-col-prob-row">
             <span class="tx-prob-pill prob-tai">Tài: 48,61%</span>
@@ -314,7 +287,6 @@
       <div class="tx-banner-timer-bar"></div>
     `;
 
-    // Click to dismiss
     const closeBtn = banner.querySelector('.tx-banner-close');
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -325,10 +297,9 @@
       dismissBanner(banner);
     });
 
-    // Auto dismiss after 6 seconds
     watcherState.bannerTimeout = setTimeout(() => {
       dismissBanner(banner);
-    }, 6000);
+    }, 5500);
   }
 
   function dismissBanner(banner) {
@@ -344,7 +315,7 @@
   }
 
   // ==========================================
-  // Xử lý khi bắt được kết quả phiên vừa xong
+  // Xử lý khi bắt được hoặc nhập kết quả phiên
   // ==========================================
   async function handleFinishedSession(sessionId, d1, d2, d3) {
     const roll = classifyRoll(d1, d2, d3);
@@ -372,31 +343,24 @@
     // TÍNH TOÁN CHO PHIÊN TIẾP THEO
     const forecast = calcNextSessionForecast(newSession, watcherState.sessions);
 
-    // 1. CHIME
+    // 1. Âm thanh chuông casino nhẹ
     playCasinoChime();
 
-    // 2. DUAL ON-SCREEN ALERT BANNER
+    // 2. Banner to trên màn hình (nếu bật)
     showDualOnScreenBanner(newSession, forecast);
 
-    // 3. VOICE ANNOUNCER: Đọc cả phiên vừa xong và phiên tiếp theo
+    // 3. Desktop Notification (không phát giọng nói)
     const label = roll.result === 'tai' ? 'Tài' : (roll.result === 'xiu' ? 'Xỉu' : 'Bộ ba');
-    const sIdClean = newSession.sessionId ? newSession.sessionId.replace('#', '') : '';
-    const nextClean = forecast.nextSessionId.replace('#', '');
-
-    const voiceText = `Phiên ${sIdClean} vừa xong về ${label} ${roll.sum} điểm: ${d1}, ${d2}, ${d3}. Chuẩn bị phiên tiếp theo ${nextClean}: Xác suất toán học Tài 48,61%, Xỉu 48,61%.`;
-    speakVietnamese(voiceText);
-
-    // 4. DESKTOP NOTIFICATION
     if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
       chrome.runtime.sendMessage({
         action: 'SHOW_NOTIFICATION',
-        title: `🎲 byHuwng: Phiên ${newSession.sessionId}: ${label.toUpperCase()} ${roll.sum} điểm [${d1}-${d2}-${d3}]`,
-        body: `Phiên tiếp theo ${forecast.nextSessionId} | ${forecast.trendBadge} | ${forecast.historySummary}`
+        title: `🤖 byHuwng: Phiên ${newSession.sessionId} về ${label.toUpperCase()} ${roll.sum}đ [${d1}-${d2}-${d3}]`,
+        body: `Phiên tiếp theo ${forecast.nextSessionId} | ${forecast.trendBadge}`
       });
     }
 
-    // 5. UPDATE HUD
-    updateHudUi(newSession, forecast);
+    // 4. CẬP NHẬT CON ROBOT VÀ BÁO KẾT QUẢ RA BÊN CẠNH
+    updateRobotAndSideBubble(newSession, forecast);
   }
 
   // ==========================================
@@ -442,90 +406,145 @@
   }
 
   // ==========================================
-  // Inject Floating HUD Widget
+  // INJECT FLOATING ROBOT ASSISTANT & SIDE BUBBLE
   // ==========================================
-  function injectFloatingHud() {
+  function injectRobotHud() {
     if (document.getElementById('taixiu-pro-hud')) return;
 
-    const hud = document.createElement('div');
-    hud.id = 'taixiu-pro-hud';
-    hud.className = 'tx-pro-hud';
-    hud.innerHTML = `
-      <div class="tx-hud-header" id="txHudHeader">
-        <div class="tx-hud-brand">
-          <span class="tx-hud-logo">🎲</span>
-          <span class="tx-hud-title">byHuwng</span>
-          <span class="tx-hud-badge-live">LIVE</span>
+    const container = document.createElement('div');
+    container.id = 'taixiu-pro-hud';
+    container.className = 'tx-robot-container';
+    container.innerHTML = `
+      <!-- 1. CON ROBOT HOẠT HÌNH (ROBOT AVATAR) -->
+      <div class="tx-robot-avatar-wrap" id="txRobotAvatar" title="Nhấp để ẩn/hiện bảng kết quả bên cạnh | Giữ chuột để kéo di chuyển">
+        <!-- Robot Character Graphics -->
+        <div class="tx-robot-body">
+          <!-- Ăng-ten phát sóng -->
+          <div class="tx-robot-antenna">
+            <div class="tx-antenna-ball" id="txAntennaBall"></div>
+            <div class="tx-antenna-stem"></div>
+          </div>
+
+          <!-- Đầu Robot -->
+          <div class="tx-robot-head">
+            <!-- Tai cảm biến trái phải -->
+            <div class="tx-robot-ear ear-left"></div>
+            <div class="tx-robot-ear ear-right"></div>
+
+            <!-- Kính mắt / Màn hình hiển thị biểu cảm -->
+            <div class="tx-robot-face" id="txRobotFace">
+              <div class="tx-robot-eye eye-left" id="txEyeLeft"></div>
+              <div class="tx-robot-eye eye-right" id="txEyeRight"></div>
+              <div class="tx-robot-mouth" id="txRobotMouth"></div>
+            </div>
+          </div>
+
+          <!-- Thân Robot và Động cơ đẩy năng lượng -->
+          <div class="tx-robot-torso">
+            <div class="tx-robot-chest-plate">
+              <div class="tx-robot-logo-text">byHuwng</div>
+              <div class="tx-robot-reactor" id="txRobotReactor"></div>
+            </div>
+            <!-- Vòng năng lượng bay lơ lửng -->
+            <div class="tx-robot-thruster"></div>
+          </div>
         </div>
-        <div class="tx-hud-controls">
-          <button id="txHudBannerBtn" class="tx-hud-btn active" title="Bật/Tắt thông báo to trên màn hình">🖥️</button>
-          <button id="txHudVoiceBtn" class="tx-hud-btn active" title="Bật/Tắt giọng đọc kết quả">🔊</button>
-          <button id="txHudNotifyBtn" class="tx-hud-btn active" title="Bật/Tắt thông báo Windows">🔔</button>
-          <button id="txHudMinBtn" class="tx-hud-btn" title="Thu nhỏ">_</button>
-          <button id="txHudCloseBtn" class="tx-hud-btn" title="Đóng">✕</button>
+
+        <!-- Trạng thái LED báo hiệu -->
+        <div class="tx-robot-status-pill" id="txRobotStatusPill">
+          <span class="tx-pill-dot"></span>
+          <span class="tx-pill-text" id="txRobotPillText">AI Bot</span>
+        </div>
+
+        <!-- Mini tag nhanh khi thu nhỏ -->
+        <div class="tx-robot-quick-tag" id="txRobotQuickTag" style="display: none;">
+          <span id="txQuickTagText">TÀI 13</span>
         </div>
       </div>
 
-      <div class="tx-hud-body" id="txHudBody">
-        <!-- THẺ 1: PHIÊN VỪA XONG -->
-        <div class="tx-hud-card" id="txHudResultCard">
-          <div class="tx-hud-row">
-            <span class="tx-hud-session" id="txHudSessionId">Phiên vừa xong: #3340096</span>
-            <span class="tx-hud-badge-res badge-tai" id="txHudBadgeRes">TÀI (13đ)</span>
-          </div>
-          <div class="tx-hud-dice-row">
-            <div class="tx-hud-die" id="txHudDie1">6</div>
-            <div class="tx-hud-die" id="txHudDie2">2</div>
-            <div class="tx-hud-die" id="txHudDie3">5</div>
-            <span class="tx-hud-sum" id="txHudSum">Tổng: 13</span>
-          </div>
-          <div class="tx-hud-pattern" id="txHudPattern">Đang theo dõi bảng cầu...</div>
-        </div>
+      <!-- 2. BẢNG BÁO KẾT QUẢ & TÍNH TOÁN Ở BÊN CẠNH CON ROBOT (SIDE BUBBLE) -->
+      <div class="tx-robot-side-panel" id="txRobotSidePanel">
+        <!-- Mũi tên chỉ vào Robot -->
+        <div class="tx-side-panel-pointer"></div>
 
-        <!-- THẺ 2: TÍNH TOÁN PHIÊN TIẾP THEO -->
-        <div class="tx-hud-next-card" id="txHudNextCard">
-          <div class="tx-next-title-row">
-            <span class="tx-next-id" id="txNextSessionId">Phiên kế tiếp: #3340097</span>
-            <span class="tx-next-badge" id="txNextTrendBadge">DỰ BÁO CẦU</span>
+        <!-- Header bảng bên cạnh -->
+        <div class="tx-panel-header" id="txPanelHeader">
+          <div class="tx-panel-brand">
+            <span class="tx-panel-title">🤖 Trợ Lý Robot byHuwng</span>
+            <span class="tx-panel-live-badge">ONLINE</span>
           </div>
-          <div class="tx-next-probs">
-            <span>Tài: <strong>48,61%</strong></span> • 
-            <span>Xỉu: <strong>48,61%</strong></span> • 
-            <span>Bộ 3: <strong>2,78%</strong></span>
-          </div>
-          <div class="tx-next-advice" id="txNextAdvice">Biến cố độc lập: Xác suất 2 cửa cân bằng</div>
-        </div>
-
-        <!-- Quick 1-Click Entry for Canvas Games -->
-        <div class="tx-hud-quick-section">
-          <div class="tx-hud-quick-label">Bấm Báo Kết Quả & Tính Tiếp:</div>
-          <div class="tx-hud-btn-row">
-            <button id="txQuickTai" class="tx-btn-quick tx-btn-tai">⚡ TÀI (13đ)</button>
-            <button id="txQuickXiu" class="tx-btn-quick tx-btn-xiu">⚡ XỈU (8đ)</button>
-            <button id="txQuickTriple" class="tx-btn-quick tx-btn-triple">⚡ BỘ BA</button>
-          </div>
-          <div class="tx-hud-input-row">
-            <input type="text" id="txManualDiceInput" placeholder="Nhập 3 xúc xắc (vd: 625) & Enter" maxlength="12">
-            <button id="txManualSubmitBtn" class="tx-btn-sub">Báo</button>
+          <div class="tx-panel-controls">
+            <button id="txPanelBannerBtn" class="tx-p-btn active" title="Bật/Tắt màn hình thông báo to">🖥️</button>
+            <button id="txPanelNotifyBtn" class="tx-p-btn active" title="Bật/Tắt thông báo máy tính">🔔</button>
+            <button id="txPanelCollapseBtn" class="tx-p-btn" title="Thu nhỏ vào con robot">◀</button>
           </div>
         </div>
 
-        <!-- Mini Bead Road -->
-        <div class="tx-hud-bead-row" id="txHudBeadRow">
-          <!-- Mini Bead dots -->
-        </div>
-      </div>
+        <!-- Body bảng bên cạnh: BÁO RA TÀI HOẶC XỈU -->
+        <div class="tx-panel-body" id="txPanelBody">
+          <!-- KHỐI 1: BÁO KẾT QUẢ PHIÊN VỪA XONG -->
+          <div class="tx-p-card tx-p-card-res" id="txPanelResultCard">
+            <div class="tx-res-top-row">
+              <span class="tx-res-session-id" id="txHudSessionId">Phiên vừa xong: #3340096</span>
+              <span class="tx-res-badge badge-tai" id="txHudBadgeRes">TÀI (13đ)</span>
+            </div>
 
-      <!-- Minimized Floating Action Icon -->
-      <div class="tx-hud-minimized" id="txHudMinimized" style="display: none;">
-        <span class="tx-min-icon">🎲</span>
-        <span class="tx-min-text" id="txMinText">byHuwng</span>
+            <!-- Xúc xắc và Tổng điểm cực to và trực quan -->
+            <div class="tx-res-dice-row">
+              <div class="tx-die-box" id="txHudDie1">6</div>
+              <div class="tx-die-box" id="txHudDie2">2</div>
+              <div class="tx-die-box" id="txHudDie3">5</div>
+              <div class="tx-sum-highlight" id="txHudSum">Tổng: 13</div>
+            </div>
+
+            <!-- Thế cầu hiện tại -->
+            <div class="tx-res-pattern-line" id="txHudPattern">🎲 Đang theo dõi chuỗi cầu...</div>
+          </div>
+
+          <!-- KHỐI 2: DỰ BÁO TOÁN HỌC CHO PHIÊN TIẾP THEO -->
+          <div class="tx-p-card tx-p-card-forecast" id="txPanelForecastCard">
+            <div class="tx-forecast-top-row">
+              <span class="tx-forecast-id" id="txNextSessionId">Phiên kế tiếp: #3340097</span>
+              <span class="tx-forecast-badge" id="txNextTrendBadge">DỰ BÁO CẦU</span>
+            </div>
+
+            <div class="tx-forecast-probs-row">
+              <span class="tx-prob-chip p-tai">Tài: <strong>48,61%</strong></span>
+              <span class="tx-prob-chip p-xiu">Xỉu: <strong>48,61%</strong></span>
+              <span class="tx-prob-chip p-b3">Bộ 3: <strong>2,78%</strong></span>
+            </div>
+
+            <div class="tx-forecast-advice-text" id="txNextAdvice">
+              ⚖️ Biến cố độc lập: Xác suất 2 cửa cân bằng (48,61%)
+            </div>
+          </div>
+
+          <!-- KHỐI 3: NHẬP NHANH KẾT QUẢ VÀO ROBOT -->
+          <div class="tx-quick-section">
+            <div class="tx-quick-title">⚡ Bấm Nhanh Hoặc Nhập Số Xúc Xắc:</div>
+            <div class="tx-quick-buttons">
+              <button id="txQuickTai" class="tx-q-btn tx-q-tai" title="Báo nhanh Tài 13 (6-2-5)">⚡ TÀI (13đ)</button>
+              <button id="txQuickXiu" class="tx-q-btn tx-q-xiu" title="Báo nhanh Xỉu 8 (2-3-3)">⚡ XỈU (8đ)</button>
+              <button id="txQuickTriple" class="tx-q-btn tx-q-b3" title="Báo nhanh Bộ ba ngẫu nhiên">⚡ BỘ BA</button>
+            </div>
+
+            <div class="tx-input-group">
+              <input type="text" id="txManualDiceInput" placeholder="Gõ 3 số xúc xắc (vd: 625) & Enter" maxlength="16">
+              <button id="txManualSubmitBtn" class="tx-input-submit-btn">Báo</button>
+            </div>
+          </div>
+
+          <!-- Mini Bead Road (Chuỗi hạt lịch sử cầu gần nhất) -->
+          <div class="tx-bead-road-container" id="txHudBeadRow">
+            <!-- Điểm hạt tròn T, X, B -->
+          </div>
+        </div>
       </div>
     `;
 
-    document.body.appendChild(hud);
-    setupHudDraggable(hud);
-    setupHudListeners(hud);
+    document.body.appendChild(container);
+    setupRobotDraggable(container);
+    setupRobotListeners(container);
 
     // Initial render from storage
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
@@ -534,118 +553,151 @@
           watcherState.sessions = res.sessions;
           const last = res.sessions[res.sessions.length - 1];
           const forecast = calcNextSessionForecast(last, res.sessions);
-          updateHudUi(last, forecast);
+          updateRobotAndSideBubble(last, forecast);
         }
       });
     }
   }
 
-  function setupHudDraggable(hud) {
-    const header = hud.querySelector('#txHudHeader');
+  // ==========================================
+  // Dragging logic (Kéo thả cả cụm Robot + Bảng)
+  // ==========================================
+  function setupRobotDraggable(container) {
+    const avatar = container.querySelector('#txRobotAvatar');
+    const panelHeader = container.querySelector('#txPanelHeader');
+
     let isDragging = false;
     let startX = 0, startY = 0;
     let initialLeft = 0, initialTop = 0;
+    let hasMoved = false;
 
-    header.addEventListener('mousedown', (e) => {
-      if (e.target.tagName === 'BUTTON') return;
+    function onMouseDown(e) {
+      if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
       isDragging = true;
+      hasMoved = false;
       startX = e.clientX;
       startY = e.clientY;
-      const rect = hud.getBoundingClientRect();
+
+      const rect = container.getBoundingClientRect();
       initialLeft = rect.left;
       initialTop = rect.top;
+
+      container.classList.add('is-dragging');
       e.preventDefault();
-    });
+    }
+
+    avatar.addEventListener('mousedown', onMouseDown);
+    panelHeader.addEventListener('mousedown', onMouseDown);
 
     document.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-      hud.style.left = `${initialLeft + dx}px`;
-      hud.style.top = `${initialTop + dy}px`;
-      hud.style.right = 'auto';
-      hud.style.bottom = 'auto';
+
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        hasMoved = true;
+      }
+
+      const newLeft = Math.max(10, Math.min(window.innerWidth - 100, initialLeft + dx));
+      const newTop = Math.max(10, Math.min(window.innerHeight - 100, initialTop + dy));
+
+      container.style.left = `${newLeft}px`;
+      container.style.top = `${newTop}px`;
+      container.style.right = 'auto';
+      container.style.bottom = 'auto';
     });
 
     document.addEventListener('mouseup', () => {
-      isDragging = false;
+      if (isDragging) {
+        isDragging = false;
+        container.classList.remove('is-dragging');
+      }
+    });
+
+    // Toggle bubble khi click vào Avatar mà không kéo chuột
+    avatar.addEventListener('click', (e) => {
+      if (hasMoved) return; // Nếu vừa kéo thì không toggle
+      toggleSidePanel();
     });
   }
 
-  function setupHudListeners(hud) {
-    const minBtn = hud.querySelector('#txHudMinBtn');
-    const closeBtn = hud.querySelector('#txHudCloseBtn');
-    const body = hud.querySelector('#txHudBody');
-    const header = hud.querySelector('#txHudHeader');
-    const minView = hud.querySelector('#txHudMinimized');
+  function toggleSidePanel() {
+    const container = document.getElementById('taixiu-pro-hud');
+    const panel = document.getElementById('txRobotSidePanel');
+    const collapseBtn = document.getElementById('txPanelCollapseBtn');
+    if (!panel) return;
 
-    const bannerBtn = hud.querySelector('#txHudBannerBtn');
-    const voiceBtn = hud.querySelector('#txHudVoiceBtn');
-    const notifyBtn = hud.querySelector('#txHudNotifyBtn');
+    watcherState.settings.bubbleVisible = !watcherState.settings.bubbleVisible;
 
-    minBtn.addEventListener('click', () => {
-      body.style.display = 'none';
-      header.style.display = 'none';
-      minView.style.display = 'flex';
-      hud.classList.add('is-minimized');
-    });
+    if (watcherState.settings.bubbleVisible) {
+      panel.style.display = 'block';
+      container.classList.remove('panel-collapsed');
+      if (collapseBtn) collapseBtn.textContent = '◀';
+    } else {
+      panel.style.display = 'none';
+      container.classList.add('panel-collapsed');
+      if (collapseBtn) collapseBtn.textContent = '▶';
+    }
+  }
 
-    minView.addEventListener('click', () => {
-      body.style.display = 'block';
-      header.style.display = 'flex';
-      minView.style.display = 'none';
-      hud.classList.remove('is-minimized');
-    });
+  // ==========================================
+  // Event listeners (Buttons, Inputs)
+  // ==========================================
+  function setupRobotListeners(container) {
+    const collapseBtn = container.querySelector('#txPanelCollapseBtn');
+    const bannerBtn = container.querySelector('#txPanelBannerBtn');
+    const notifyBtn = container.querySelector('#txPanelNotifyBtn');
 
-    closeBtn.addEventListener('click', () => {
-      hud.style.display = 'none';
-    });
+    if (collapseBtn) {
+      collapseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSidePanel();
+      });
+    }
 
-    bannerBtn.addEventListener('click', () => {
-      watcherState.settings.onScreenAlert = !watcherState.settings.onScreenAlert;
-      bannerBtn.classList.toggle('active', watcherState.settings.onScreenAlert);
-    });
+    if (bannerBtn) {
+      bannerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        watcherState.settings.onScreenAlert = !watcherState.settings.onScreenAlert;
+        bannerBtn.classList.toggle('active', watcherState.settings.onScreenAlert);
+      });
+    }
 
-    voiceBtn.addEventListener('click', () => {
-      watcherState.settings.voiceEnabled = !watcherState.settings.voiceEnabled;
-      voiceBtn.classList.toggle('active', watcherState.settings.voiceEnabled);
-      voiceBtn.textContent = watcherState.settings.voiceEnabled ? '🔊' : '🔇';
-      speakVietnamese(watcherState.settings.voiceEnabled ? 'Đã bật giọng đọc' : 'Đã tắt giọng đọc');
-    });
+    if (notifyBtn) {
+      notifyBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        watcherState.settings.notifyEnabled = !watcherState.settings.notifyEnabled;
+        notifyBtn.classList.toggle('active', watcherState.settings.notifyEnabled);
+        notifyBtn.textContent = watcherState.settings.notifyEnabled ? '🔔' : '🔕';
+      });
+    }
 
-    notifyBtn.addEventListener('click', () => {
-      watcherState.settings.notifyEnabled = !watcherState.settings.notifyEnabled;
-      notifyBtn.classList.toggle('active', watcherState.settings.notifyEnabled);
-      notifyBtn.textContent = watcherState.settings.notifyEnabled ? '🔔' : '🔕';
-    });
-
-    // Quick Add Buttons: e.g. 6-2-5 (Tài 13) from user's image!
-    const quickTai = hud.querySelector('#txQuickTai');
+    // Quick Add Buttons
+    const quickTai = container.querySelector('#txQuickTai');
     quickTai.addEventListener('click', () => {
       handleFinishedSession(null, 6, 2, 5); // Tài 13 (6-2-5)
     });
 
-    const quickXiu = hud.querySelector('#txQuickXiu');
+    const quickXiu = container.querySelector('#txQuickXiu');
     quickXiu.addEventListener('click', () => {
       handleFinishedSession(null, 2, 3, 3); // Xỉu 8 (2-3-3)
     });
 
-    const quickTriple = hud.querySelector('#txQuickTriple');
+    const quickTriple = container.querySelector('#txQuickTriple');
     quickTriple.addEventListener('click', () => {
       const v = (Math.random() * 6 | 0) + 1;
       handleFinishedSession(null, v, v, v);
     });
 
-    // Manual Input: supports "625" or "3340096 625"
-    const input = hud.querySelector('#txManualDiceInput');
-    const submit = hud.querySelector('#txManualSubmitBtn');
+    // Manual Input: gõ 625 hoặc #3340096 625
+    const input = container.querySelector('#txManualDiceInput');
+    const submit = container.querySelector('#txManualSubmitBtn');
 
     const submitManual = () => {
       const raw = input.value.trim();
       let customSessionId = null;
       let diceStr = raw;
 
-      // Check if session ID was also entered, e.g. "#3340096 625"
       const sessionMatch = raw.match(/#?([0-9]{5,10})\s+([1-6]{3})/);
       if (sessionMatch) {
         customSessionId = '#' + sessionMatch[1];
@@ -671,8 +723,20 @@
     });
   }
 
-  function updateHudUi(session, forecast) {
+  // ==========================================
+  // Cập nhật Robot Avatar & Bảng báo bên cạnh
+  // ==========================================
+  function updateRobotAndSideBubble(session, forecast) {
     if (!session) return;
+
+    const container = document.getElementById('taixiu-pro-hud');
+    const avatar = document.getElementById('txRobotAvatar');
+    const face = document.getElementById('txRobotFace');
+    const reactor = document.getElementById('txRobotReactor');
+    const antenna = document.getElementById('txAntennaBall');
+    const pillText = document.getElementById('txRobotPillText');
+    const quickTag = document.getElementById('txRobotQuickTag');
+    const quickTagText = document.getElementById('txQuickTagText');
 
     const sIdEl = document.getElementById('txHudSessionId');
     const badgeEl = document.getElementById('txHudBadgeRes');
@@ -681,47 +745,89 @@
     const d3El = document.getElementById('txHudDie3');
     const sumEl = document.getElementById('txHudSum');
     const patEl = document.getElementById('txHudPattern');
-    const minText = document.getElementById('txMinText');
 
-    // Next session elements
     const nextIdEl = document.getElementById('txNextSessionId');
     const nextBadgeEl = document.getElementById('txNextTrendBadge');
     const nextAdviceEl = document.getElementById('txNextAdvice');
+    const sidePanel = document.getElementById('txRobotSidePanel');
 
+    // Phân loại kết quả
+    const isTai = session.result === 'tai';
+    const isXiu = session.result === 'xiu';
+    const isTriple = session.result === 'triple';
+
+    let label = 'TÀI';
+    let resCls = 'badge-tai';
+    let moodCls = 'robot-mood-tai';
+
+    if (isXiu) {
+      label = 'XỈU';
+      resCls = 'badge-xiu';
+      moodCls = 'robot-mood-xiu';
+    } else if (isTriple) {
+      label = 'BỘ BA';
+      resCls = 'badge-triple';
+      moodCls = 'robot-mood-triple';
+    }
+
+    // 1. BIỂU CẢM & HIỆU ỨNG ÁNH SÁNG CON ROBOT
+    if (avatar) {
+      avatar.classList.remove('robot-mood-tai', 'robot-mood-xiu', 'robot-mood-triple');
+      avatar.classList.add(moodCls);
+      avatar.classList.add('robot-bounce');
+      setTimeout(() => avatar.classList.remove('robot-bounce'), 800);
+    }
+
+    if (pillText) {
+      pillText.textContent = `${label} ${session.sum}đ`;
+    }
+
+    // Nếu bảng bên cạnh đang bị thu gọn, hiển thị Quick Tag bên cạnh robot trong 6 giây
+    if (quickTag && quickTagText) {
+      quickTagText.textContent = `${label} ${session.sum} [${session.dice.join('-')}]`;
+      if (!watcherState.settings.bubbleVisible) {
+        quickTag.style.display = 'block';
+        quickTag.className = `tx-robot-quick-tag tag-${session.result} animate-pop`;
+        if (watcherState.bubbleTimeout) clearTimeout(watcherState.bubbleTimeout);
+        watcherState.bubbleTimeout = setTimeout(() => {
+          quickTag.style.display = 'none';
+        }, 6000);
+      }
+    }
+
+    // 2. BẢNG BÁO KẾT QUẢ Ở BÊN CẠNH
     if (sIdEl) sIdEl.textContent = `Phiên vừa xong: ${session.sessionId || ('#' + watcherState.currentSessionNumber)}`;
     if (d1El && session.dice) d1El.textContent = session.dice[0];
     if (d2El && session.dice) d2El.textContent = session.dice[1];
     if (d3El && session.dice) d3El.textContent = session.dice[2];
     if (sumEl) sumEl.textContent = `Tổng: ${session.sum}`;
 
-    let label = 'TÀI';
-    let cls = 'badge-tai';
-    if (session.result === 'triple') {
-      label = 'BỘ BA';
-      cls = 'badge-triple';
-    } else if (session.result === 'xiu') {
-      label = 'XỈU';
-      cls = 'badge-xiu';
-    }
-
     if (badgeEl) {
       badgeEl.textContent = `${label} (${session.sum}đ)`;
-      badgeEl.className = `tx-hud-badge-res ${cls}`;
+      badgeEl.className = `tx-res-badge ${resCls}`;
     }
 
     if (patEl) {
-      patEl.textContent = forecast ? forecast.pattern : 'Cầu ngẫu nhiên';
+      patEl.textContent = forecast ? `🎲 Thế cầu: ${forecast.pattern}` : '🎲 Cầu ngẫu nhiên tự nhiên';
     }
 
+    // Khối dự báo phiên tiếp theo
     if (nextIdEl && forecast) nextIdEl.textContent = `Phiên kế tiếp: ${forecast.nextSessionId}`;
     if (nextBadgeEl && forecast) nextBadgeEl.textContent = forecast.trendBadge;
     if (nextAdviceEl && forecast) nextAdviceEl.textContent = forecast.trendAdvice;
 
-    if (minText) {
-      minText.textContent = `${label} (${session.sum}) ➔ ${forecast ? forecast.nextSessionId : ''}`;
+    // Hiệu ứng phát sáng đường viền bảng bên cạnh
+    if (sidePanel) {
+      sidePanel.classList.remove('border-tai', 'border-xiu', 'border-triple');
+      if (isTai) sidePanel.classList.add('border-tai');
+      else if (isXiu) sidePanel.classList.add('border-xiu');
+      else sidePanel.classList.add('border-triple');
+
+      sidePanel.classList.add('panel-pop');
+      setTimeout(() => sidePanel.classList.remove('panel-pop'), 400);
     }
 
-    // Render mini bead dots
+    // Vẽ chuỗi hạt lịch sử Bead Road
     const beadRow = document.getElementById('txHudBeadRow');
     if (beadRow) {
       beadRow.innerHTML = '';
@@ -730,18 +836,18 @@
         const dot = document.createElement('span');
         dot.className = `tx-mini-bead bead-${s.result}`;
         dot.textContent = s.result === 'tai' ? 'T' : (s.result === 'xiu' ? 'X' : 'B');
-        dot.title = `Tổng: ${s.sum} (${s.dice ? s.dice.join('-') : ''})`;
+        dot.title = `Phiên: ${s.sessionId || ''} | ${s.result.toUpperCase()} ${s.sum}đ (${s.dice ? s.dice.join('-') : ''})`;
         beadRow.appendChild(dot);
       });
     }
   }
 
   // ==========================================
-  // Start Scanner, Hook & Observer
+  // Khởi động Scanner, Hook & Observer
   // ==========================================
   function init() {
     injectMainWorldHook();
-    injectFloatingHud();
+    injectRobotHud();
 
     const observer = new MutationObserver(() => {
       scanPageForResults();

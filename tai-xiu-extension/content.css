@@ -1,11 +1,12 @@
 /* ========================================================
-   TAI XIU PRO - Floating HUD & DUAL-PANEL BIG ON-SCREEN BANNER
-   - Column 1: Kết quả phiên vừa xong (#3340096)
-   - Column 2: Tính toán phiên tiếp theo (#3340097)
+   byHuwng - ROBOT ASSISTANT & SIDE RESULT PANEL
+   - Floating Animated Robot Avatar
+   - Side Speech Bubble / Panel báo kết quả TÀI / XỈU ngay bên cạnh
+   - Dual-Panel Big On-Screen Alert Banner
    ======================================================== */
 
 /* ========================================================
-   1. DUAL-PANEL BIG ON-SCREEN BANNER
+   1. DUAL-PANEL BIG ON-SCREEN BANNER (Đỉnh màn hình)
    ======================================================== */
 .tx-screen-banner {
   position: fixed;
@@ -46,7 +47,7 @@
 }
 .tx-screen-banner.is-xiu {
   border-color: #10b981;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(16, 185, 129, 0.45);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(168, 85, 247, 0.45);
 }
 .tx-screen-banner.is-triple {
   border-color: #a855f7;
@@ -82,7 +83,6 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* DUAL GRID: 2 COLUMNS */
 .tx-banner-dual-grid {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -152,7 +152,6 @@
   font-weight: 600;
 }
 
-/* Col Next (Phiên tiếp theo) */
 .tx-col-trend-badge {
   display: inline-block;
   align-self: flex-start;
@@ -196,7 +195,7 @@
   height: 3px;
   background: #d4af37;
   width: 100%;
-  animation: bannerCountdown 6s linear forwards;
+  animation: bannerCountdown 5.5s linear forwards;
 }
 
 @keyframes bannerCountdown {
@@ -205,84 +204,446 @@
 }
 
 /* ========================================================
-   2. FLOATING HUD WIDGET
+   2. FLOATING ROBOT CONTAINER & LAYOUT
    ======================================================== */
-.tx-pro-hud {
+.tx-robot-container {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 320px;
-  background: rgba(15, 18, 25, 0.96);
-  border: 1.5px solid #d4af37;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(212, 175, 55, 0.25);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  color: #f8fafc;
+  bottom: 25px;
+  right: 25px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
   z-index: 2147483646;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   user-select: none;
-  backdrop-filter: blur(8px);
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  transition: transform 0.15s ease;
+}
+
+.tx-robot-container.is-dragging {
+  cursor: grabbing !important;
+  opacity: 0.95;
+  transform: scale(1.02);
+}
+
+/* ========================================================
+   3. CON ROBOT HOẠT HÌNH (ROBOT AVATAR)
+   ======================================================== */
+.tx-robot-avatar-wrap {
+  position: relative;
+  width: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: grab;
+  animation: robotFloat 3.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.tx-robot-avatar-wrap:active {
+  cursor: grabbing;
+}
+
+@keyframes robotFloat {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+.tx-robot-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Ăng-ten robot */
+.tx-robot-antenna {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: -1px;
+}
+
+.tx-antenna-ball {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 10px #38bdf8, 0 0 18px rgba(56, 189, 248, 0.7);
+  animation: antennaPulse 1.8s infinite;
+  transition: all 0.3s ease;
+}
+
+@keyframes antennaPulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.25); opacity: 1; }
+}
+
+.tx-antenna-stem {
+  width: 3px;
+  height: 7px;
+  background: #64748b;
+  border-radius: 2px;
+}
+
+/* Đầu Robot */
+.tx-robot-head {
+  position: relative;
+  width: 66px;
+  height: 52px;
+  background: linear-gradient(180deg, #334155 0%, #1e293b 70%, #0f172a 100%);
+  border: 2px solid #64748b;
+  border-radius: 20px 20px 16px 16px;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.25), 0 8px 16px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Tai robot */
+.tx-robot-ear {
+  position: absolute;
+  top: 16px;
+  width: 6px;
+  height: 14px;
+  background: #475569;
+  border: 1px solid #94a3b8;
+  border-radius: 3px;
+}
+.ear-left { left: -7px; }
+.ear-right { right: -7px; }
+
+/* Kính mặt hiển thị LED */
+.tx-robot-face {
+  position: relative;
+  width: 48px;
+  height: 32px;
+  background: #020617;
+  border-radius: 10px;
+  border: 1.5px solid #1e293b;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   overflow: hidden;
 }
 
-.tx-pro-hud.is-minimized {
-  width: auto;
-  border-radius: 30px;
+/* Đôi mắt phát sáng LED */
+.tx-robot-eye {
+  position: absolute;
+  top: 9px;
+  width: 10px;
+  height: 9px;
+  background: #38bdf8;
+  border-radius: 3px;
+  box-shadow: 0 0 8px #38bdf8, 0 0 14px rgba(56, 189, 248, 0.8);
+  animation: eyeBlink 4s infinite;
+  transition: all 0.3s ease;
+}
+.eye-left { left: 10px; }
+.eye-right { right: 10px; }
+
+@keyframes eyeBlink {
+  0%, 48%, 52%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.1); }
 }
 
-.tx-hud-header {
+.tx-robot-mouth {
+  position: absolute;
+  bottom: 6px;
+  width: 14px;
+  height: 2px;
+  background: #38bdf8;
+  border-radius: 2px;
+  box-shadow: 0 0 6px #38bdf8;
+  opacity: 0.7;
+}
+
+/* Thân robot */
+.tx-robot-torso {
+  position: relative;
+  width: 46px;
+  height: 28px;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 1.5px solid #475569;
+  border-radius: 0 0 14px 14px;
+  margin-top: -2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+}
+
+.tx-robot-chest-plate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tx-robot-logo-text {
+  font-size: 7.5px;
+  font-weight: 900;
+  color: #d4af37;
+  letter-spacing: 0.5px;
+}
+
+.tx-robot-reactor {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+  animation: reactorPulse 2s infinite ease-in-out;
+}
+
+@keyframes reactorPulse {
+  0%, 100% { opacity: 0.7; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* Động cơ đẩy lơ lửng */
+.tx-robot-thruster {
+  position: absolute;
+  bottom: -6px;
+  width: 16px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #38bdf8 0%, rgba(56, 189, 248, 0) 70%);
+  box-shadow: 0 0 10px #38bdf8;
+  animation: thrusterGlow 1.2s infinite alternate;
+}
+
+@keyframes thrusterGlow {
+  0% { transform: scaleX(0.85); opacity: 0.6; }
+  100% { transform: scaleX(1.3); opacity: 1; }
+}
+
+/* Trạng thái status pill bên dưới robot */
+.tx-robot-status-pill {
+  margin-top: 10px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #334155;
+  border-radius: 20px;
+  padding: 2px 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.tx-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.tx-pill-text {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #cbd5e1;
+  letter-spacing: 0.5px;
+}
+
+/* ========================================================
+   BIỂU CẢM & MÀU SẮC ROBOT KHI CÓ KẾT QUẢ TÀI / XỈU
+   ======================================================== */
+/* KHI RA TÀI (Đỏ) */
+.tx-robot-avatar-wrap.robot-mood-tai .tx-antenna-ball {
+  background: #ef4444;
+  box-shadow: 0 0 12px #ef4444, 0 0 20px rgba(239, 68, 68, 0.9);
+}
+.tx-robot-avatar-wrap.robot-mood-tai .tx-robot-head {
+  border-color: #ef4444;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.5);
+}
+.tx-robot-avatar-wrap.robot-mood-tai .tx-robot-eye,
+.tx-robot-avatar-wrap.robot-mood-tai .tx-robot-mouth,
+.tx-robot-avatar-wrap.robot-mood-tai .tx-robot-reactor {
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444, 0 0 18px rgba(239, 68, 68, 0.8);
+}
+.tx-robot-avatar-wrap.robot-mood-tai .tx-pill-dot {
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+}
+
+/* KHI RA XỈU (Xanh lá) */
+.tx-robot-avatar-wrap.robot-mood-xiu .tx-antenna-ball {
+  background: #10b981;
+  box-shadow: 0 0 12px #10b981, 0 0 20px rgba(16, 185, 129, 0.9);
+}
+.tx-robot-avatar-wrap.robot-mood-xiu .tx-robot-head {
+  border-color: #10b981;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.5);
+}
+.tx-robot-avatar-wrap.robot-mood-xiu .tx-robot-eye,
+.tx-robot-avatar-wrap.robot-mood-xiu .tx-robot-mouth,
+.tx-robot-avatar-wrap.robot-mood-xiu .tx-robot-reactor {
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981, 0 0 18px rgba(16, 185, 129, 0.8);
+}
+.tx-robot-avatar-wrap.robot-mood-xiu .tx-pill-dot {
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+/* KHI RA BỘ BA (Tím) */
+.tx-robot-avatar-wrap.robot-mood-triple .tx-antenna-ball {
+  background: #a855f7;
+  box-shadow: 0 0 12px #a855f7;
+}
+.tx-robot-avatar-wrap.robot-mood-triple .tx-robot-head {
+  border-color: #a855f7;
+}
+.tx-robot-avatar-wrap.robot-mood-triple .tx-robot-eye,
+.tx-robot-avatar-wrap.robot-mood-triple .tx-robot-reactor {
+  background: #a855f7;
+  box-shadow: 0 0 10px #a855f7;
+}
+
+/* Nhảy nhẹ khi có kết quả mới */
+.robot-bounce {
+  animation: robotBounceJump 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes robotBounceJump {
+  0% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-16px) scale(1.1); }
+  70% { transform: translateY(-4px) scale(0.95); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* Mini Quick Tag bên cạnh khi thu nhỏ */
+.tx-robot-quick-tag {
+  position: absolute;
+  top: 15px;
+  right: -90px;
+  background: #0f172a;
+  border: 1.5px solid #d4af37;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #fff;
+  white-space: nowrap;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.6);
+  z-index: 10;
+}
+.tx-robot-quick-tag.tag-tai { border-color: #ef4444; color: #f87171; }
+.tx-robot-quick-tag.tag-xiu { border-color: #10b981; color: #34d399; }
+.tx-robot-quick-tag.tag-triple { border-color: #a855f7; color: #c084fc; }
+
+.animate-pop {
+  animation: tagPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes tagPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ========================================================
+   4. BẢNG BÁO KẾT QUẢ Ở BÊN CẠNH CON ROBOT (SIDE PANEL)
+   ======================================================== */
+.tx-robot-side-panel {
+  position: relative;
+  width: 330px;
+  background: rgba(15, 20, 30, 0.96);
+  border: 1.5px solid #d4af37;
+  border-radius: 14px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75), 0 0 20px rgba(212, 175, 55, 0.25);
+  color: #f8fafc;
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.tx-robot-side-panel.border-tai {
+  border-color: #ef4444;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75), 0 0 22px rgba(239, 68, 68, 0.35);
+}
+.tx-robot-side-panel.border-xiu {
+  border-color: #10b981;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75), 0 0 22px rgba(16, 185, 129, 0.35);
+}
+.tx-robot-side-panel.border-triple {
+  border-color: #a855f7;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75), 0 0 22px rgba(168, 85, 247, 0.35);
+}
+
+.panel-pop {
+  animation: panelPopEffect 0.35s ease;
+}
+@keyframes panelPopEffect {
+  0% { transform: scale(0.98); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+/* Mũi tên trỏ vào Robot */
+.tx-side-panel-pointer {
+  position: absolute;
+  bottom: 25px;
+  left: -8px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid #d4af37;
+}
+
+.border-tai .tx-side-panel-pointer { border-right-color: #ef4444; }
+.border-xiu .tx-side-panel-pointer { border-right-color: #10b981; }
+
+/* Header bảng bên cạnh */
+.tx-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background: linear-gradient(180deg, #232938 0%, #171c26 100%);
+  background: linear-gradient(180deg, #242c3d 0%, #171d2b 100%);
   border-bottom: 1px solid rgba(212, 175, 55, 0.3);
   cursor: grab;
 }
-.tx-hud-header:active {
+.tx-panel-header:active {
   cursor: grabbing;
 }
 
-.tx-hud-brand {
+.tx-panel-brand {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.tx-hud-logo {
-  font-size: 16px;
-}
-
-.tx-hud-title {
+.tx-panel-title {
   font-size: 12px;
   font-weight: 800;
   color: #d4af37;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
-.tx-hud-badge-live {
-  font-size: 8.5px;
+.tx-panel-live-badge {
+  font-size: 8px;
   font-weight: 800;
-  background: #ef4444;
+  background: #10b981;
   color: #fff;
   padding: 1px 5px;
-  border-radius: 10px;
+  border-radius: 8px;
   letter-spacing: 0.5px;
-  animation: pulseLive 1.5s infinite;
 }
 
-@keyframes pulseLive {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
-}
-
-.tx-hud-controls {
+.tx-panel-controls {
   display: flex;
   gap: 4px;
 }
 
-.tx-hud-btn {
+.tx-p-btn {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid #334155;
   color: #cbd5e1;
@@ -296,171 +657,180 @@
   cursor: pointer;
   transition: all 0.15s;
 }
-
-.tx-hud-btn:hover {
+.tx-p-btn:hover {
   border-color: #d4af37;
   color: #d4af37;
   background: rgba(212, 175, 55, 0.15);
 }
-
-.tx-hud-btn.active {
+.tx-p-btn.active {
   border-color: #d4af37;
   background: rgba(212, 175, 55, 0.2);
 }
 
-.tx-hud-body {
+.tx-panel-body {
   padding: 10px 12px;
 }
 
-/* Thẻ phiên vừa xong */
-.tx-hud-card {
-  background: #11141c;
-  border: 1px solid #232b3d;
+/* THẺ KẾT QUẢ PHIÊN VỪA XONG */
+.tx-p-card {
   border-radius: 8px;
   padding: 8px 10px;
   margin-bottom: 8px;
 }
 
-.tx-hud-row {
+.tx-p-card-res {
+  background: #0f1420;
+  border: 1px solid #1e293b;
+}
+
+.tx-res-top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6px;
 }
 
-.tx-hud-session {
+.tx-res-session-id {
   font-size: 11px;
   color: #94a3b8;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.tx-hud-badge-res {
-  font-size: 11px;
-  font-weight: 800;
-  padding: 2px 8px;
+.tx-res-badge {
+  font-size: 12px;
+  font-weight: 900;
+  padding: 2px 10px;
   border-radius: 12px;
+  letter-spacing: 0.5px;
 }
 
-.tx-hud-badge-res.badge-tai {
+.tx-res-badge.badge-tai {
   background: rgba(239, 68, 68, 0.25);
-  border: 1px solid #ef4444;
+  border: 1.5px solid #ef4444;
   color: #fca5a5;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
 }
 
-.tx-hud-badge-res.badge-xiu {
+.tx-res-badge.badge-xiu {
   background: rgba(16, 185, 129, 0.25);
-  border: 1px solid #10b981;
+  border: 1.5px solid #10b981;
   color: #86efac;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
 }
 
-.tx-hud-badge-res.badge-triple {
+.tx-res-badge.badge-triple {
   background: rgba(168, 85, 247, 0.25);
-  border: 1px solid #a855f7;
+  border: 1.5px solid #a855f7;
   color: #d8b4fe;
 }
 
-.tx-hud-dice-row {
+.tx-res-dice-row {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 6px;
 }
 
-.tx-hud-die {
-  width: 26px;
-  height: 26px;
+.tx-die-box {
+  width: 28px;
+  height: 28px;
   background: #f8fafc;
   color: #0f172a;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 14px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  font-weight: 900;
+  font-size: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
-.tx-hud-sum {
-  font-size: 13px;
-  font-weight: 800;
+.tx-sum-highlight {
+  font-size: 14px;
+  font-weight: 900;
   color: #d4af37;
   margin-left: 6px;
 }
 
-.tx-hud-pattern {
+.tx-res-pattern-line {
   font-size: 10.5px;
   color: #38bdf8;
   font-weight: 600;
-  border-top: 1px dashed #232b3d;
+  border-top: 1px dashed #1e293b;
   padding-top: 5px;
 }
 
-/* Thẻ tính phiên tiếp theo */
-.tx-hud-next-card {
-  background: linear-gradient(135deg, #131c2e 0%, #0e1422 100%);
+/* THẺ DỰ BÁO TIẾP THEO */
+.tx-p-card-forecast {
+  background: linear-gradient(135deg, #131c2e 0%, #0d131f 100%);
   border: 1px solid rgba(56, 189, 248, 0.35);
-  border-radius: 8px;
-  padding: 8px 10px;
-  margin-bottom: 8px;
 }
 
-.tx-next-title-row {
+.tx-forecast-top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 4px;
 }
 
-.tx-next-id {
+.tx-forecast-id {
   font-size: 11px;
   font-weight: 800;
   color: #38bdf8;
 }
 
-.tx-next-badge {
+.tx-forecast-badge {
   font-size: 9.5px;
   font-weight: 700;
   color: #d4af37;
   background: rgba(212, 175, 55, 0.15);
-  padding: 1px 6px;
+  padding: 1px 7px;
   border-radius: 10px;
 }
 
-.tx-next-probs {
-  font-size: 10.5px;
-  color: #cbd5e1;
+.tx-forecast-probs-row {
+  display: flex;
+  gap: 6px;
   margin-bottom: 4px;
 }
-.tx-next-probs strong {
-  color: #d4af37;
+
+.tx-prob-chip {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
 }
 
-.tx-next-advice {
+.p-tai { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.p-xiu { background: rgba(16, 185, 129, 0.2); color: #86efac; }
+.p-b3 { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+
+.tx-forecast-advice-text {
   font-size: 9.5px;
   color: #94a3b8;
   line-height: 1.3;
 }
 
-/* Quick Section */
-.tx-hud-quick-section {
+/* PHẦN NHẬP NHANH VÀO ROBOT */
+.tx-quick-section {
   margin-bottom: 8px;
 }
 
-.tx-hud-quick-label {
+.tx-quick-title {
   font-size: 9.5px;
   color: #94a3b8;
   margin-bottom: 4px;
   font-weight: 700;
 }
 
-.tx-hud-btn-row {
+.tx-quick-buttons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 5px;
   margin-bottom: 6px;
 }
 
-.tx-btn-quick {
+.tx-q-btn {
   padding: 5px 2px;
   font-size: 10px;
   font-weight: 800;
@@ -470,44 +840,35 @@
   transition: all 0.15s;
 }
 
-.tx-btn-tai {
+.tx-q-tai {
   background: rgba(239, 68, 68, 0.2);
   border-color: #ef4444;
   color: #f87171;
 }
-.tx-btn-tai:hover {
-  background: #ef4444;
-  color: #fff;
-}
+.tx-q-tai:hover { background: #ef4444; color: #fff; }
 
-.tx-btn-xiu {
+.tx-q-xiu {
   background: rgba(16, 185, 129, 0.2);
   border-color: #10b981;
   color: #34d399;
 }
-.tx-btn-xiu:hover {
-  background: #10b981;
-  color: #fff;
-}
+.tx-q-xiu:hover { background: #10b981; color: #fff; }
 
-.tx-btn-triple {
+.tx-q-b3 {
   background: rgba(168, 85, 247, 0.2);
   border-color: #a855f7;
   color: #c084fc;
 }
-.tx-btn-triple:hover {
-  background: #a855f7;
-  color: #fff;
-}
+.tx-q-b3:hover { background: #a855f7; color: #fff; }
 
-.tx-hud-input-row {
+.tx-input-group {
   display: flex;
   gap: 5px;
 }
 
-.tx-hud-input-row input {
+.tx-input-group input {
   flex: 1;
-  background: #131722;
+  background: #0b0f19;
   border: 1px solid #334155;
   color: #f8fafc;
   padding: 4px 8px;
@@ -515,26 +876,27 @@
   font-size: 11px;
   outline: none;
 }
-.tx-hud-input-row input:focus {
+.tx-input-group input:focus {
   border-color: #d4af37;
 }
 
-.tx-btn-sub {
+.tx-input-submit-btn {
   background: #d4af37;
   color: #0b0e14;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   border: none;
   border-radius: 4px;
   padding: 4px 10px;
   cursor: pointer;
+  transition: background 0.15s;
 }
-.tx-btn-sub:hover {
+.tx-input-submit-btn:hover {
   background: #f59e0b;
 }
 
-/* Mini Bead Row */
-.tx-hud-bead-row {
+/* LỊCH SỬ BEAD ROAD MINI */
+.tx-bead-road-container {
   display: flex;
   gap: 4px;
   overflow-x: auto;
@@ -557,25 +919,3 @@
 .tx-mini-bead.bead-tai { background: #ef4444; }
 .tx-mini-bead.bead-xiu { background: #10b981; }
 .tx-mini-bead.bead-triple { background: #a855f7; }
-
-/* Minimized Mode */
-.tx-hud-minimized {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  cursor: pointer;
-  background: #171c26;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-}
-
-.tx-min-icon {
-  font-size: 16px;
-}
-
-.tx-min-text {
-  font-size: 11.5px;
-  font-weight: 800;
-  color: #d4af37;
-}
